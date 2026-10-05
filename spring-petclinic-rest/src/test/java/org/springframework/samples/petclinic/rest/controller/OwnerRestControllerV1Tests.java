@@ -393,7 +393,7 @@ class OwnerRestControllerV1Tests {
         String newPetAsJSON = mapper.writeValueAsString(newPet);
         String technicalMessage = "could not execute statement; SQL [insert into pets ...]; constraint [fk_pet_owner]";
         given(this.ownerService.findOwnerById(1)).willReturn(ownerMapper.toOwner(owners.get(0)));
-        doThrow(new DataIntegrityViolationException(technicalMessage)).when(this.petService).savePet(any());
+        doThrow(new DataIntegrityViolationException(technicalMessage)).when(this.petService).addPetToOwner(any(), any());
         this.mockMvc.perform(post("/api/owners/1/pets")
                 .content(newPetAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
             .andDo(MockMvcResultHandlers.print())
@@ -496,7 +496,7 @@ class OwnerRestControllerV1Tests {
         String newPetAsJSON = mapper.writeValueAsString(newPet);
         given(this.ownerService.findOwnerById(1)).willReturn(ownerMapper.toOwner(owners.get(0)));
         doThrow(new IllegalStateException("JDBC timeout while executing insert into pets"))
-            .when(this.petService).savePet(any());
+            .when(this.petService).addPetToOwner(any(), any());
         this.mockMvc.perform(post("/api/owners/1/pets")
                 .content(newPetAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
             .andDo(MockMvcResultHandlers.print())

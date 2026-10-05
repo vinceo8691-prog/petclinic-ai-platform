@@ -155,10 +155,7 @@ public class OwnerRestControllerV1 implements OwnersApi {
         }
         HttpHeaders headers = new HttpHeaders();
         Pet pet = petMapper.toPet(petFieldsDto);
-        owner.setId(ownerId);
-        pet.setOwner(owner);
-        pet.getType().setName(null);
-        this.petService.savePet(pet);
+        this.petService.addPetToOwner(owner, pet);
         PetDto petDto = petMapper.toPetDto(pet);
         headers.setLocation(UriComponentsBuilder.newInstance().path("/api/pets/{id}")
             .buildAndExpand(pet.getId()).toUri());

@@ -3,6 +3,7 @@ package org.springframework.samples.petclinic.service;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.samples.petclinic.model.Owner;
 import org.springframework.samples.petclinic.model.Pet;
 import org.springframework.samples.petclinic.model.PetType;
 import org.springframework.samples.petclinic.repository.PetRepository;
@@ -51,6 +52,15 @@ public class PetService {
     public void savePet(Pet pet) throws DataAccessException {
         pet.setType(petTypeService.findPetTypeById(pet.getType().getId()));
         petRepository.save(pet);
+    }
+
+    // Takes the already-loaded Owner rather than an id so PetService doesn't need
+    // a dependency on OwnerService (see ADR-0006) -- owner.addPet wires both sides
+    // of the relationship, which hand-setting pet.setOwner(owner) in the caller used to skip.
+    @Transactional
+    public void addPetToOwner(Owner owner, Pet pet) throws DataAccessException {
+        owner.addPet(pet);
+        savePet(pet);
     }
 
 }
