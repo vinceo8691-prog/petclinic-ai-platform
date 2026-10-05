@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -26,6 +28,18 @@ public class BasicAuthenticationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // ADMIN's name implies it outranks the resource-scoped admin roles, but hasRole()
+    // does exact authority matching with no hierarchy unless one is declared here.
+    // This is what makes ROLE_ADMIN alone sufficient for @PreAuthorize checks that
+    // require ROLE_OWNER_ADMIN or ROLE_VET_ADMIN. See docs/adr/0007-admin-role-hierarchy.md.
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("""
+            ROLE_ADMIN > ROLE_OWNER_ADMIN
+            ROLE_ADMIN > ROLE_VET_ADMIN
+            """);
     }
 
 
