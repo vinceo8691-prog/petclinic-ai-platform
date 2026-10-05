@@ -42,3 +42,4 @@ Infrastructure:
 - Explain significant architectural changes before implementing them.
 - Add tests for new functionality.
 - Do not introduce new dependencies without explaining why.
+- Explicitly call out security implications when a change touches a security-related subject (authentication, authorization, secrets, etc.). 
