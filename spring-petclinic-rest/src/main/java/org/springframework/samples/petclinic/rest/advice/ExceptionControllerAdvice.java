@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.samples.petclinic.rest.controller.BindingErrorsResponse;
 import org.springframework.samples.petclinic.rest.dto.ValidationMessageDto;
 import org.springframework.validation.BindingResult;
@@ -51,6 +52,7 @@ public class ExceptionControllerAdvice {
     private static final String ERROR_UNEXPECTED = "An unexpected error occurred while processing your request";
     private static final String ERROR_DATA_INTEGRITY = "The requested resource could not be processed due to a data constraint violation";
     private static final String ERROR_INVALID_REQUEST = "The request contains invalid or missing parameters";
+    private static final String ERROR_ACCESS_DENIED = "You do not have permission to access this resource";
 
     /**
      * Private method for constructing the {@link ProblemDetail} object passing the name and details of the exception
@@ -104,6 +106,26 @@ public class ExceptionControllerAdvice {
         logger.debug("Data integrity violation stacktrace", e);
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), ERROR_DATA_INTEGRITY);
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    /**
+     * Handles {@link AccessDeniedException}, thrown when an authenticated principal lacks the
+     * role required by a {@code @PreAuthorize} check. Specific handler needed because this would
+     * otherwise be caught by {@link #handleGeneralException}, inside DispatcherServlet's own
+     * exception resolution -- before Spring Security's ExceptionTranslationFilter ever sees it
+     * to translate it to 403 itself. See docs/architecture/authorization-denied-status-code.md.
+     *
+     * @param e The {@link AccessDeniedException} to be handled
+     * @param request {@link HttpServletRequest} object referring to the current request.
+     * @return A {@link ResponseEntity} containing the error information and a 403 Forbidden status
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException e, HttpServletRequest request) {
+        logger.warn("Access denied at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), ERROR_ACCESS_DENIED);
         return ResponseEntity.status(status).body(detail);
     }
 
