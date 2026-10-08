@@ -1,0 +1,176 @@
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { jsonResponse, makeOwner, makePage, renderApp, requestedUrls } from '../../test/utils'
+
+function mockFetch(handler: (url: string) => Promise<Response>) {
+  const mock = vi.fn<typeof fetch>((input) => handler(String(input)))
+  vi.stubGlobal('fetch', mock)
+  return mock
+}
+
+describe('OwnersPage', () => {
+  it('shows a loading state, then the owners', async () => {
+    let resolve!: (r: Response) => void
+    mockFetch(() => new Promise((r) => (resolve = r)))
+    renderApp()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading owners…')
+    resolve(new Response(JSON.stringify(makePage())))
+
+    expect(await screen.findByRole('link', { name: 'Franklin, George' })).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('renders owner rows with formatted phone, pet summary and a details link', async () => {
+    mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+
+    const link = await screen.findByRole('link', { name: 'Franklin, George' })
+    expect(link).toHaveAttribute('href', '/owners/1')
+    const row = link.closest('tr')!
+    expect(within(row).getByText('(608) 555-1023')).toBeInTheDocument()
+    expect(within(row).getByText('Leo, Basil +1')).toBeInTheDocument()
+    expect(within(row).getByText('Madison')).toBeInTheDocument()
+    expect(screen.getByText('45 owners')).toBeInTheDocument()
+    expect(screen.getByText('Showing 1–20 of 45 owners')).toBeInTheDocument()
+  })
+
+  it('shows "None" for an owner without pets', async () => {
+    mockFetch(() => jsonResponse(makePage({ content: [makeOwner(1, { pets: [] })], totalElements: 1, totalPages: 1 })))
+    renderApp()
+    expect(await screen.findByText('None')).toBeInTheDocument()
+  })
+
+  it('opens the owner when the row is clicked', async () => {
+    mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+    const link = await screen.findByRole('link', { name: 'Franklin, George' })
+
+    await userEvent.click(within(link.closest('tr')!).getByText('Madison'))
+
+    expect(await screen.findByRole('heading', { name: 'Owner details' })).toBeInTheDocument()
+    expect(screen.getByText('Owner #1')).toBeInTheDocument()
+  })
+
+  it('shows the server message and retries on error', async () => {
+    let calls = 0
+    mockFetch(() => (++calls === 1 ? jsonResponse({ detail: 'boom' }, 500) : jsonResponse(makePage())))
+    renderApp()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Could not load owners')
+    expect(alert).toHaveTextContent('boom')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByRole('link', { name: 'Franklin, George' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('explains an access error without offering retry', async () => {
+    mockFetch(() => jsonResponse({ detail: 'Forbidden' }, 403))
+    renderApp()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("You don't have access to owners")
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+  })
+
+  it('shows an empty state with an Add owner action when there are no owners', async () => {
+    mockFetch(() => jsonResponse(makePage({ content: [], totalElements: 0, totalPages: 0 })))
+    renderApp()
+
+    expect(await screen.findByRole('heading', { name: 'No owners yet' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Add owner' })).toHaveLength(2) // header action + empty state
+  })
+
+  it('searches by last name after a pause and resets to page 1', async () => {
+    const fetchMock = mockFetch(() => jsonResponse(makePage()))
+    renderApp('/owners?page=2')
+    await screen.findByRole('link', { name: 'Franklin, George' })
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search by last name' }), 'dav')
+
+    await waitFor(() =>
+      expect(requestedUrls(fetchMock).at(-1)).toBe('/petclinic/api/v2/owners?lastName=dav&page=0&size=20'),
+    )
+  })
+
+  it('shows a no-results state and can return to the full list', async () => {
+    const fetchMock = mockFetch((url) =>
+      url.includes('lastName=zzz')
+        ? jsonResponse(makePage({ content: [], totalElements: 0, totalPages: 0 }))
+        : jsonResponse(makePage()),
+    )
+    renderApp('/owners?lastName=zzz')
+
+    expect(await screen.findByRole('heading', { name: 'No owners found' })).toBeInTheDocument()
+    expect(screen.getByText(/starting with “zzz”/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all owners' }))
+
+    expect(await screen.findByRole('link', { name: 'Franklin, George' })).toBeInTheDocument()
+    expect(requestedUrls(fetchMock).at(-1)).not.toContain('lastName')
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+  })
+
+  it('reads search, page and size from the URL', async () => {
+    const fetchMock = mockFetch(() => jsonResponse(makePage({ page: 1, size: 10 })))
+    renderApp('/owners?lastName=Davis&page=1&size=10')
+
+    await screen.findByRole('link', { name: 'Franklin, George' })
+    expect(requestedUrls(fetchMock)[0]).toBe('/petclinic/api/v2/owners?lastName=Davis&page=1&size=10')
+    expect(screen.getByRole('searchbox')).toHaveValue('Davis')
+    expect(screen.getByText('45 owners matching “Davis”')).toBeInTheDocument()
+  })
+
+  it('pages forward and back', async () => {
+    const fetchMock = mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+    await screen.findByRole('link', { name: 'Franklin, George' })
+    expect(screen.getByRole('button', { name: /Previous/ })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('button', { name: /Next/ }))
+    await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('page=1'))
+    await userEvent.click(await screen.findByRole('button', { name: /Previous/ }))
+    await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('page=0'))
+  })
+
+  it('clears the search with the clear button in the field', async () => {
+    const fetchMock = mockFetch(() => jsonResponse(makePage()))
+    renderApp('/owners?lastName=Davis')
+    await screen.findByRole('link', { name: 'Franklin, George' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).not.toContain('lastName'))
+  })
+
+  it('changes the page size and returns to page 1', async () => {
+    const fetchMock = mockFetch(() => jsonResponse(makePage()))
+    renderApp('/owners?page=2')
+    await screen.findByRole('link', { name: 'Franklin, George' })
+
+    await userEvent.selectOptions(screen.getByLabelText('Rows per page'), '50')
+
+    await waitFor(() => {
+      const last = requestedUrls(fetchMock).at(-1)!
+      expect(last).toContain('size=50')
+      expect(last).toContain('page=0')
+    })
+  })
+
+  it('offers a way back when the page is past the end', async () => {
+    mockFetch(() => jsonResponse(makePage({ content: [], page: 9, totalElements: 45, totalPages: 3 })))
+    renderApp('/owners?page=9')
+
+    expect(await screen.findByRole('heading', { name: 'This page is empty' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go to first page' })).toBeInTheDocument()
+  })
+
+  it('sets the document title', async () => {
+    mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+    await screen.findByRole('link', { name: 'Franklin, George' })
+    expect(document.title).toBe('Owners – PetClinic')
+  })
+})

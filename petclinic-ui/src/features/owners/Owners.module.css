@@ -1,0 +1,94 @@
+.toolbar {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+.dim {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-subtle);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.table td {
+  height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.row {
+  cursor: pointer;
+}
+.row:hover {
+  background: var(--color-surface-subtle);
+}
+.name {
+  font-weight: 500;
+}
+.muted {
+  color: var(--color-muted);
+}
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Secondary lines inside the name cell, used when columns are hidden on narrower screens. */
+.metaAddress,
+.metaAddressCity,
+.metaContact {
+  display: none;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+/* Tablet: fold Address under the name. */
+@media (max-width: 1023px) {
+  .colAddress {
+    display: none;
+  }
+  .metaAddress {
+    display: block;
+  }
+}
+
+/* Phone: one compact cell per owner. */
+@media (max-width: 639px) {
+  .colTelephone,
+  .colCity,
+  .colPets {
+    display: none;
+  }
+  .metaAddress {
+    display: none;
+  }
+  .metaAddressCity,
+  .metaContact {
+    display: block;
+  }
+}
+
+/* Loading skeleton: static bars, no animation. */
+.bar {
+  display: inline-block;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--color-surface-subtle);
+}

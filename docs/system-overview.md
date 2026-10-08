@@ -10,7 +10,7 @@ architecture and `docs/adr/` for the reasoning behind specific decisions.
 |---|---|---|
 | PetClinic REST API | `spring-petclinic-rest` | Fully implemented |
 | PetClinic AI Agent | `petclinic-ai-agent` | Empty Spring Boot scaffold, no endpoints or AI logic yet |
-| PetClinic UI | `petclinic-ui` | Empty Vite/React scaffold, renders a static heading, no API calls yet |
+| PetClinic UI | `petclinic-ui` | App shell, Owners page and Add owner page (calls `spring-petclinic-rest`); see [docs/ui](ui/ui-overview.md) |
 
 Only `spring-petclinic-rest` does any real work today. The other two exist as
 buildable skeletons so the monorepo layout and tooling are in place before
@@ -24,8 +24,8 @@ petclinic-ui ──▶ petclinic-ai-agent
 petclinic-ai-agent ──▶ spring-petclinic-rest   (REST only — never the database)
 ```
 
-Nothing currently violates this because `petclinic-ai-agent` and `petclinic-ui`
-don't call anything yet. See [ADR-0002](adr/0002-separate-ai-agent-from-ui-and-rest-api.md)
+Nothing currently violates this: `petclinic-ui` calls only `spring-petclinic-rest`, and
+`petclinic-ai-agent` calls nothing yet. See [ADR-0002](adr/0002-separate-ai-agent-from-ui-and-rest-api.md)
 for why the agent is a separate deployable.
 
 ## PetClinic REST API (`spring-petclinic-rest`)
@@ -134,9 +134,12 @@ ahead of implementation.
 
 ## PetClinic UI (`petclinic-ui`)
 
-Vite + React 19 + TypeScript skeleton. `App.tsx` renders a static "PetClinic"
-heading; there is no routing, no API client, and no calls to either
-`spring-petclinic-rest` or `petclinic-ai-agent` yet.
+Vite + React 19 + TypeScript, with React Router and TanStack Query. It has an app
+shell (header, navigation, an assistant-panel preview that is not connected to
+anything), an Owners page (paged, searchable list from `GET /v2/owners`) and an Add
+owner page (`POST /owners`); Owner details is a placeholder. It does not call
+`petclinic-ai-agent` yet. Screens, navigation, endpoint mapping and visual conventions
+are documented in [docs/ui](ui/ui-overview.md).
 
 ## Infrastructure
 
