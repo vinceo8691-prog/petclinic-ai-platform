@@ -18,8 +18,8 @@ const DEFAULT_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
 
 function positiveInt(value: string | null, fallback: number): number {
-  const n = Number.parseInt(value ?? '', 10)
-  return Number.isFinite(n) && n >= 0 ? n : fallback
+  const parsed = Number.parseInt(value ?? '', 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
 }
 
 export function OwnersPage() {

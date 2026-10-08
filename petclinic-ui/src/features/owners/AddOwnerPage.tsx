@@ -42,8 +42,8 @@ export function AddOwnerPage() {
     }
   }
 
-  function onSubmit(e: SubmitEvent) {
-    e.preventDefault()
+  function onSubmit(event: SubmitEvent) {
+    event.preventDefault()
     if (Object.keys(allErrors).length > 0) {
       setFailedSubmits((n) => n + 1)
       return
@@ -73,18 +73,18 @@ export function AddOwnerPage() {
             <div ref={summary} tabIndex={-1} role="alert" className={styles.summary}>
               <strong>Please fix the following:</strong>
               <ul>
-                {summaryFields.map((f) => (
-                  <li key={f}>
+                {summaryFields.map((summaryField) => (
+                  <li key={summaryField}>
                     <a
-                      href={`#owner-${f}`}
+                      href={`#owner-${summaryField}`}
                       onClick={(e) => {
                         e.preventDefault()
-                        focusField(f)
+                        focusField(summaryField)
                       }}
                     >
-                      {FIELD_LABELS[f]}
+                      {FIELD_LABELS[summaryField]}
                     </a>
-                    : {allErrors[f]}
+                    : {allErrors[summaryField]}
                   </li>
                 ))}
               </ul>
