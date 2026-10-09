@@ -27,6 +27,10 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   invalidates what it changed (a deleted owner is removed from the cache instead). Server data
   is never copied into `useState`, and `useEffect` is used only to sync with the outside
   world (title, focus, timers, the dialog), not to derive values.
+- **Retries:** failed queries retry up to three times, but never on a 4xx (404, 403, 400 …),
+  which a retry cannot fix, so an unknown owner reports "not found" at once instead of after
+  about seven seconds. Network failures, 5xx, 408 and 429 are retried (`shouldRetry` in
+  `api/client.ts`). Writes are not retried.
 - **`204 No Content`** (the API's answer to PUT and DELETE) is handled in the API client, so
   those calls resolve to nothing; screens refetch rather than read a response.
 - **Routing via React Router.** Every screen has its own URL. List state (search text, page,
