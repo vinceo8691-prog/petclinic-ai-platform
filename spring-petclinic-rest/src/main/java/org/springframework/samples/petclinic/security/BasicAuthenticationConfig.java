@@ -33,7 +33,7 @@ public class BasicAuthenticationConfig {
     // ADMIN's name implies it outranks the resource-scoped admin roles, but hasRole()
     // does exact authority matching with no hierarchy unless one is declared here.
     // This is what makes ROLE_ADMIN alone sufficient for @PreAuthorize checks that
-    // require ROLE_OWNER_ADMIN or ROLE_VET_ADMIN. See docs/adr/0007-admin-role-hierarchy.md.
+    // require ROLE_OWNER_ADMIN or ROLE_VET_ADMIN. See docs/adr/0006-admin-role-hierarchy.md.
     @Bean
     public RoleHierarchy roleHierarchy() {
         return RoleHierarchyImpl.fromHierarchy("""

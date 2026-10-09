@@ -1,4 +1,4 @@
-# 7. Declare a role hierarchy so ROLE_ADMIN outranks the resource-scoped roles
+# 6. Declare a role hierarchy so ROLE_ADMIN outranks the resource-scoped roles
 
 Date: 2026-10-05
 

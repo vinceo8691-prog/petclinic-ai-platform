@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Verifies the ROLE_ADMIN > ROLE_OWNER_ADMIN / ROLE_ADMIN > ROLE_VET_ADMIN
  * role hierarchy declared in {@link BasicAuthenticationConfig#roleHierarchy()}.
- * See docs/adr/0007-admin-role-hierarchy.md.
+ * See docs/adr/0006-admin-role-hierarchy.md.
  */
 @SpringBootTest
 @ContextConfiguration(classes = ApplicationTestConfig.class)
