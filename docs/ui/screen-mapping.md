@@ -6,7 +6,7 @@ paths are under `/petclinic/api` (the UI's `VITE_PETCLINIC_API_URL`). Screens ma
 are proposed, not decided.
 
 **Auth column:** the role required when `petclinic.security.enable=true`. `ADMIN` also
-satisfies `OWNER_ADMIN` and `VET_ADMIN` ([ADR-0007](../adr/0007-admin-role-hierarchy.md)).
+satisfies `OWNER_ADMIN` and `VET_ADMIN` ([ADR-0006](../adr/0006-admin-role-hierarchy.md)).
 Security is off by default.
 
 **Build column:** `Built` means the UI calls it today.
@@ -15,12 +15,12 @@ Security is off by default.
 |---|---|---|---|---|---|
 | Owner search | `GET /v2/owners?lastName&page&size` | `listOwnersPage` | Paged owner list (`OwnerPage`) | OWNER_ADMIN | Built |
 | Add owner | `POST /owners` | `addOwner` | Create the owner (201 returns the `Owner`) | OWNER_ADMIN | Built |
-| Owner details | `GET /owners/{ownerId}` | `getOwner` | Owner with pets and visits | OWNER_ADMIN | Not started |
-| Owner details | `DELETE /owners/{ownerId}` | `deleteOwner` | Delete action (behind a confirmation dialog) | OWNER_ADMIN | Not started |
+| Owner details | `GET /owners/{ownerId}` | `getOwner` | Owner with pets and visits | OWNER_ADMIN | Built |
+| Owner details | `DELETE /owners/{ownerId}` | `deleteOwner` | Delete action (behind a confirmation dialog) | OWNER_ADMIN | Built |
 | Add pet | `GET /pettypes` | `listPetTypes` | Populate the type select | OWNER_ADMIN or VET_ADMIN | Not started |
 | Add pet | `POST /owners/{ownerId}/pets` | `addPetToOwner` | Create the pet | OWNER_ADMIN | Not started |
-| Edit owner ⚠️ | `GET /owners/{ownerId}` | `getOwner` | Prefill the form | OWNER_ADMIN | Not started |
-| Edit owner ⚠️ | `PUT /owners/{ownerId}` | `updateOwner` | Save changes | OWNER_ADMIN | Not started |
+| Edit owner | `GET /owners/{ownerId}` | `getOwner` | Prefill the form | OWNER_ADMIN | Built |
+| Edit owner | `PUT /owners/{ownerId}` | `updateOwner` | Save changes | OWNER_ADMIN | Built |
 | Edit pet ⚠️ | `GET /owners/{ownerId}/pets/{petId}` | `getOwnersPet` | Prefill the form | OWNER_ADMIN | Not started |
 | Edit pet ⚠️ | `GET /pettypes` | `listPetTypes` | Populate the type select | OWNER_ADMIN or VET_ADMIN | Not started |
 | Edit pet ⚠️ | `PUT /owners/{ownerId}/pets/{petId}` | `updateOwnersPet` | Save changes | OWNER_ADMIN | Not started |
@@ -37,6 +37,21 @@ Security is off by default.
   space/hyphen/apostrophe separators, up to three words), `address` (≤255), `city` (≤80),
   `telephone` (digits only, ≤20). The UI validates the same rules before sending; the server
   stays authoritative.
+
+- **Owner details / Edit owner**: `GET /owners/{ownerId}` returns the owner with each pet's `type`,
+  `birthDate` and `visits`. A `404` (or a non-numeric id, which is never sent) shows "Owner not found".
+- **Edit owner**: `PUT /owners/{ownerId}` takes the same `OwnerFields` body as Add owner. The API answers
+  `204 No Content` (the generated controller attaches a body to it, but none is sent), so the UI
+  refetches the owner instead of reading a response.
+- **Delete owner**: `DELETE /owners/{ownerId}` answers `204`. `Owner.pets` and `Pet.visits` are mapped
+  with `CascadeType.ALL`, so the owner's pets and their visits go with them; the confirmation says so.
+  ⚠️ **Known backend bug (verified 2026-10-08):** deleting an owner who has pets fails. `Pet.type` is
+  also mapped `CascadeType.ALL`, so removing a pet cascades a remove to its shared pet type; Hibernate
+  then tries `update pets set type_id = null` for the other pets of that type, the NOT NULL column
+  rejects it, and the transaction rolls back (no data is lost). The API answers `404` (the exception
+  handler maps every data-integrity error to 404) with "data constraint violation". Owners without
+  pets delete fine (`204`). Fix belongs in `spring-petclinic-rest` (drop the cascade on `Pet.type`)
+  on its own branch, with a test; until then the UI shows the server message in the delete dialog.
 
 ## Notes
 

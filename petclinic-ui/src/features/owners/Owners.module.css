@@ -1,6 +1,13 @@
 .toolbar {
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-4);
+}
+
+/* The table, its header and the pagination footer share one bordered, rounded card. */
+.tableCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
 }
 
 .tableWrap {
@@ -16,17 +23,19 @@
   border-collapse: collapse;
 }
 .table th {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface-subtle);
   border-bottom: 1px solid var(--color-border);
   color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-align: left;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .table td {
-  height: 40px;
+  height: 60px;
   padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
@@ -40,14 +49,63 @@
 .row:hover {
   background: var(--color-surface-subtle);
 }
+.colActions {
+  text-align: right;
+  white-space: nowrap;
+}
 .name {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.name:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
 }
 .muted {
   color: var(--color-muted);
 }
 .nowrap {
   white-space: nowrap;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pillMore {
+  background: var(--color-surface-subtle);
+  color: var(--color-muted);
 }
 
 /* Secondary lines inside the name cell, used when columns are hidden on narrower screens. */
@@ -85,10 +143,17 @@
   }
 }
 
-/* Loading skeleton: static bars, no animation. */
+/* Loading skeleton: static shapes, no animation. */
 .bar {
   display: inline-block;
   height: 12px;
   border-radius: 4px;
+  background: var(--color-surface-subtle);
+}
+.avatarBar {
+  display: inline-block;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   background: var(--color-surface-subtle);
 }

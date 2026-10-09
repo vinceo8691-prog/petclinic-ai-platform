@@ -21,6 +21,16 @@ describe('AppShell', () => {
     expect(within(nav).getByRole('link', { name: 'Owners' })).toHaveAttribute('aria-current', 'page')
   })
 
+  it('keeps all page art hidden from assistive technology', () => {
+    const { container } = renderApp()
+    // Every SVG in the app is decorative (icons, backdrop shapes, dog and leaves): hidden itself or inside a hidden wrapper.
+    const exposedSvgs = Array.from(container.querySelectorAll('svg')).filter(
+      (svg) => !svg.closest('[aria-hidden="true"]'),
+    )
+    expect(exposedSvgs).toHaveLength(0)
+    expect(container.querySelectorAll('img:not([alt=""])')).toHaveLength(0)
+  })
+
   it('redirects unknown paths to the owners list', () => {
     renderApp('/nowhere')
     expect(screen.getByRole('heading', { name: 'Owners' })).toBeInTheDocument()

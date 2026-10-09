@@ -10,10 +10,10 @@ confirmation before it counts as decided; `Deferred` = known but intentionally n
 | # | Screen | Route | Purpose | Decision | Build |
 |---|---|---|---|---|---|
 | 1 | Owner search | `/owners` | Find owners; paged list with a last-name search. Entry point to the owner flow. | Decided | Built |
-| 2 | Owner details | `/owners/:ownerId` | Show one owner's contact info, their pets and each pet's visits. Hub for owner actions, including Edit owner and the delete action (see below). | Decided | Placeholder |
+| 2 | Owner details | `/owners/:ownerId` | Show one owner's contact info, their pets and each pet's visits. Hub for owner actions, including Edit owner and the delete action (see below). | Decided | Built (owner, contact and pets with visits; Add pet / Add visit not yet) |
 | 3 | Add pet | `/owners/:ownerId/pets/new` | Register a new pet (name, birth date, type) for an owner. | Decided | Not started |
 | 4 | Add owner | `/owners/new` | Create an owner as its own page (first/last name, address, city, telephone). | Decided | Built |
-| 5 | Edit owner | `/owners/:ownerId/edit` | Update an owner's contact details; reuses the Add owner form. | Proposed | Not started |
+| 5 | Edit owner | `/owners/:ownerId/edit` | Update an owner's contact details; shares the Add owner form. | Decided | Built |
 | 6 | Edit pet | `/owners/:ownerId/pets/:petId/edit` | Update a pet's name, birth date or type. | Proposed | Not started |
 | 7 | Add visit | `/owners/:ownerId/pets/:petId/visits/new` | Record a visit (date, description) for a pet. | Proposed | Not started |
 | 8 | Vets list | `/vets` | Read-only list of vets and their specialties. | Proposed | Not started |
@@ -36,9 +36,10 @@ owner opens screen 2. The search box filters by last name (prefix match, via the
 `lastName` parameter). "Add owner" is the page's primary action. Not sortable until the
 backend supports it (see Deferred).
 
-**2. Owner details** — Owner fields; a pets section where each pet shows name, birth date,
-type and its visits; actions for Edit owner, Add pet, and Add visit (per pet). Currently a
-placeholder page showing the owner id.
+**2. Owner details** — Header with the owner's name, **Edit owner** and **Delete owner**; a Contact
+section (address, city, formatted telephone); a Pets section with one card per pet showing name,
+type, birth date and its visits. Unknown or non-numeric ids show "Owner not found". Add pet and
+Add visit actions arrive with those screens.
 
 **3. Add pet** — Form with name (required), birth date (required), type (select populated
 from pet types). On success, returns to screen 2 showing the new pet.
@@ -48,11 +49,15 @@ rules. On success it opens the new owner's details.
 
 ### Delete owner
 
-Deletion belongs on **Owner details (screen 2)**, via a "More actions" menu next to Edit
-owner, and opens a confirmation dialog stating what will be removed (the owner's pets and,
-to be verified, their visits) before a red **Delete owner** button. It is built with that
-screen, not before. It requires `OWNER_ADMIN`. Delete is deliberately not offered from the
-owner list. Deleting pets and visits follows the same pattern when those screens are built.
+Deletion lives on **Owner details (screen 2)**, never in the owner list. ⚠️ The earlier plan was a
+"More actions" menu; with only one action in it, the page header shows a plain **Delete owner**
+button (red outline) beside Edit owner instead. Say so if you would rather have the menu.
+
+It opens a modal confirmation that names the owner and how many pets will go with them, with
+**Cancel** focused first and a red **Delete** button. On success the user returns to the
+Owner search with a "Deleted owner …" message; on failure the dialog stays open with the error.
+It requires `OWNER_ADMIN`. Deleting pets and visits follows the same pattern when those screens are
+built.
 
 ## Deliberately not included (⚠️ confirm)
 
@@ -70,6 +75,6 @@ owner list. Deleting pets and visits follows the same pattern when those screens
 
 ## Suggested build order
 
-Shell → Owner search → Add owner (done) → Owner details (with Edit and Delete) → Add pet →
+Shell → Owner search → Add owner (done) → Owner details (with Edit and Delete, done) → Add pet →
 the remaining proposed screens → connect the AI assistant once `petclinic-ai-agent` has
 endpoints.

@@ -1,0 +1,68 @@
+/* Decorative page art. Everything here is aria-hidden and ignores pointer events. */
+
+/* Fixed layer behind the page: big teal shapes peeking out from the left and right edges, plus clouds. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.backdrop svg {
+  position: absolute;
+  display: block;
+}
+
+.blobLeft {
+  left: -17vw;
+  bottom: -14vh;
+  width: max(30vw, 320px);
+}
+.blobRight {
+  right: -13vw;
+  top: 26vh;
+  width: max(26vw, 280px);
+}
+.cloudTop {
+  top: calc(var(--header-h) + 28px);
+  right: 5vw;
+  width: 150px;
+}
+.cloudSide {
+  top: 36vh;
+  left: 1vw;
+  width: 110px;
+}
+
+/* In-flow scene at the bottom of the page: a leaf cluster under each end of the card. */
+.scene {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  max-width: var(--page-max);
+  height: 170px;
+  margin: auto auto 0;
+  padding: 0 var(--space-6);
+  pointer-events: none;
+}
+.scene svg {
+  display: block;
+}
+.leavesLeft {
+  width: 92px;
+  margin-left: 56px;
+}
+.leavesRight {
+  width: 110px;
+  margin-right: 56px;
+}
+
+/* Phones: no art at all, so nothing sits behind or beside the content. */
+@media (max-width: 639px) {
+  .backdrop,
+  .scene {
+    display: none;
+  }
+}

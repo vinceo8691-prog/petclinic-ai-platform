@@ -17,7 +17,7 @@ export class ApiError extends Error {
 type Params = Record<string, string | number | undefined>
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   params?: Params
   body?: unknown
   signal?: AbortSignal
@@ -57,6 +57,8 @@ export async function request<T>(
       problem,
     )
   }
+  // 204 No Content (PUT, DELETE) has no body to parse.
+  if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
 
