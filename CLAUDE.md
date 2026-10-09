@@ -43,3 +43,4 @@ Infrastructure:
 - Add tests for new functionality.
 - Do not introduce new dependencies without explaining why.
 - Explicitly call out security implications when a change touches a security-related subject (authentication, authorization, secrets, etc.). 
+- In all AI-generated code, do not use single character variable, property and parameter names, except for loop indices and parameters of short inline lambdas and callbacks. Use descriptive names instead
