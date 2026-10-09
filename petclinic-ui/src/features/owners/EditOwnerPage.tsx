@@ -20,7 +20,7 @@ export function EditOwnerPage() {
       <BackLink to={`/owners/${ownerId}`}>Owner details</BackLink>
       <PageHeader icon="users" title="Edit owner" />
       <OwnerLoadStatus {...loadState} />
-      {owner && <EditOwnerForm owner={owner} />}
+      {owner && <EditOwnerForm key={owner.id} owner={owner} />}
     </>
   )
 }

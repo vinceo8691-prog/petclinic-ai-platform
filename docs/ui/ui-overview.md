@@ -21,12 +21,9 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   components; `src/api/` holds the typed REST client; `src/components/` holds the shared
   building blocks; `src/lib/` holds small helpers. Shared pieces are extracted only once a
   second or third screen needs them (straightforward over abstract, per `CLAUDE.md`).
-- **Server state via TanStack Query**, local UI state via `useState`. No global store.
-  Each feature has plain API functions in `src/api/`, one hooks file (`useOwners.ts`) wrapping
-  them, then components. Query keys are `['owners', params]` and `['owner', id]`; every write
-  invalidates what it changed (a deleted owner is removed from the cache instead). Server data
-  is never copied into `useState`, and `useEffect` is used only to sync with the outside
-  world (title, focus, timers, the dialog), not to derive values.
+- **Server state via TanStack Query**, local UI state via `useState`. No global store. Query
+  keys are `['owners', params]` and `['owner', id]`. The rules for layering, state, invalidation
+  and types are under [Frontend conventions](#frontend-conventions).
 - **Retries:** failed queries retry up to three times, but never on a 4xx (404, 403, 400 …),
   which a retry cannot fix, so an unknown owner reports "not found" at once instead of after
   about seven seconds. Network failures, 5xx, 408 and 429 are retried (`shouldRetry` in
@@ -105,7 +102,8 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   plain-language summary and explicit Confirm/Reject, plus "Review in form", which opens the
   real form prefilled so the change goes through the same validated path as a manual edit.
   A badge on the launcher will count unresolved suggestions made while the panel is closed. ⚠️ Whether the UI or the
-  agent performs a confirmed write is undecided (default: the UI, after Confirm).
+  agent performs a confirmed write is undecided (default: the UI, after Confirm). Confirmation
+  is not the access control: permission for AI writes is enforced by the backend (see Security).
 
 ## Visual conventions
 
@@ -151,6 +149,39 @@ Every screen handles these, as the Owners page demonstrates:
 ≥1024px full table; 640–1023px the Address column folds under the name; below 640px each row
 is a compact cell (name, then address and city, then phone and pets). No horizontal scrolling.
 
+## Frontend conventions
+
+Defaults the owner screens establish for every later feature. They guide judgment; they are not
+a checklist to satisfy at the cost of simplicity.
+
+1. **Server data lives in TanStack Query.** Do not mirror it into `useState` to display or derive
+   it. Editable drafts are the exception: a form may be seeded once from the cache
+   (`EditOwnerForm` does this), edited as local state, and discarded on save or cancel. Reset a
+   draft when the record changes by giving the form a `key` (for example `key={owner.id}`). Use
+   `useEffect` only to sync with the outside world (title, focus, timers, the dialog), never to
+   derive values.
+2. **Layering is a default, not a quota.** The usual shape is plain functions in `src/api/`,
+   hooks in one file per feature (`useOwners.ts`), then components. Do not add a layer or
+   wrapper that only forwards a call. A feature with one read can define its hook beside the
+   page and split later, when a second consumer appears. Query keys are `['owners', params]`
+   and `['owner', id]`.
+3. **List state belongs in the URL; form and dialog state stays local.** After a successful
+   write, invalidate only the queries that write affected, never everything: adding an owner
+   invalidates `['owners']`; updating one also invalidates `['owner', id]`; deleting one removes
+   `['owner', id]` and invalidates `['owners']`. Do not invalidate after a failed write. (Adding
+   a pet later should refresh that owner's details and the owner lists, which show pets, but
+   not other owners.)
+4. **Types.** Use `interface` for API shapes and string unions instead of enums. Use
+   `Record<K, V>` for typed key-to-value mappings (field labels, max lengths). Use `Partial<T>`
+   when some properties of an object type may be omitted (form errors as
+   `Partial<Record<OwnerField, string>>`, test overrides as `Partial<Owner>`). `Partial` is not
+   specific to maps.
+5. **Confirmation is UX; the backend enforces permission.** Destructive actions, and
+   AI-initiated writes, go through a confirmation dialog so the user consents knowingly. A
+   dialog never replaces authorization: anything that can call the API can skip it, so
+   permission for AI writes is enforced in the backend (see
+   [Security and authentication](#security-and-authentication)).
+
 ## Reusable pieces
 
 `AppShell`, `Backdrop`, `AssistantPanel`, `PageHeader`, `BackLink`, `Button`/`buttonClassName`,
@@ -175,6 +206,14 @@ exists.
 - Owner data is personal data. It is held in memory only (React Query cache), never written
   to browser storage or logged. All API text is rendered through React's default escaping.
 - Hiding or disabling actions by role is a convenience only; the backend enforces access.
+- **AI-initiated writes (design requirement, not built):** a confirmation dialog is consent, not
+  authorization. The agent can read owner and visit text that someone typed, so it must be treated
+  as capable of being steered by that text. The backend must therefore enforce what an AI-initiated
+  write may do: the agent's own credentials should be read-only, and a write should run with the
+  confirming user's credentials and the exact payload they approved, and be audited as AI-proposed
+  and user-confirmed. ⚠️ Today there is no agent principal and `OWNER_ADMIN` covers reads and
+  writes, so this needs its own ADR before the agent can propose writes (scheduled with the
+  backend work, after the last-name sort branch).
 
 ## Known gaps
 
