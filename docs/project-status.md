@@ -10,8 +10,9 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 - `main` has the REST backend, the app shell, the Owners list and the Add owner page
   (PR #3, **PC001_Owner_UI_Screen**, merged 2026-10-08).
-- Owner details, Edit owner and Delete owner are built and tested but **not yet committed**.
-  They are on `feature/OwnerDetailsScreen`, which becomes **PC002**.
+- Owner details, Edit owner and Delete owner are built and tested. They are on
+  `feature/OwnerDetailsScreen` in the open PR #4, **PC002_Owner_Details_Screen**, awaiting
+  review. (#4 is GitHub's own number; PC002 is our title prefix.)
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -27,7 +28,7 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
   single-character names outside loops and short callbacks.
 
-**Built, uncommitted on `feature/OwnerDetailsScreen`** (PC002, 84 UI tests, lint and build pass)
+**In PC002, open for review** (`feature/OwnerDetailsScreen`; 96 UI tests, lint and build pass)
 - **Redesign:** teal page background and artwork, one large rounded card, header with the dog
   mark and underlined current item, avatars and pet pills in the table, a single View icon per
   row, light-blue clouds, dog favicon.
@@ -38,19 +39,23 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Refactors:** shared `OwnerForm`, `TextField` (replaces the render-prop `FormField`),
   `OwnerRoute` (shared loader for details and edit), validation now appears after the first
   submit attempt, not on blur.
-- **Docs:** the `docs/ui/` files updated for all of the above; ADR-0007 renumbered to
-  ADR-0006 with its references fixed (including comments in three backend files).
+- **Retry rule:** queries no longer retry client errors (4xx), so an unknown owner reports
+  "not found" at once instead of after about seven seconds.
+- **Docs:** the `docs/ui/` files updated for all of the above, including a new Frontend
+  conventions section; ADR-0007 renumbered to ADR-0006 with its references fixed (including
+  comments in three backend files); this status doc.
 
 ## Next tasks
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC002, owner details.** Finish your review of the owner screens, then commit, push and open
-   the PR (you supply the text after `PC002_`).
+1. **PC002, owner details (PR #4).** Review and approve, then merge.
 2. **PC003 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
    `lastName`) and `direction` on `GET /v2/owners`, case-insensitive prefix search on both v1 and
    v2 with `%` and `_` escaped, tests including the H2 profile, docs. Then the UI Name column
-   sort. Full design is in the saved plan.
+   sort. Full design is in the saved plan. Also draft the **agent-authorization ADR** during
+   this backend work (the backend enforces AI-write permission; the agent's credentials are
+   read-only).
 3. **PC004 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
 4. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
    the assistant once `petclinic-ai-agent` has endpoints.
@@ -109,3 +114,16 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - Denied authorization returns 403, not 500.
 - Never put credentials in `VITE_*` variables; owner data is held in memory only; only the
   assistant's open/closed preference is stored in `localStorage`.
+
+## Backlog
+
+Items with no date yet. **Copy this section forward each week; do not replace it.** If it grows
+past about ten items, move it to GitHub Issues and link them here.
+
+- **Move the Dependabot config and workflows to the repo root.** They sit in
+  `spring-petclinic-rest/.github/`, but GitHub only reads the root `.github/`, so version-update
+  PRs and the build workflows (Maven build, Docker build, Newman) probably no longer run. The
+  workflows need their paths adjusted for the `spring-petclinic-rest` subfolder, so try them on a
+  branch first. Dependabot PRs #1 and #2 were closed unmerged on 2026-10-08 (springdoc 3.1.0 and
+  refactor-first plugin 0.9.0 stay as they are).
+- ✅ Dependabot **security updates** were enabled in the GitHub repo settings (2026-10-09).
