@@ -55,6 +55,8 @@ In the order we agreed, one branch at a time, each merged and approved before th
    adjust them for the `spring-petclinic-rest` subfolder, add a UI workflow (`npm ci`, lint, test,
    build), keep the Docker Hub push out, and set up a GitHub ruleset on `main` (pull request and
    passing checks required, approvals 0). CI runs on every PR and again on pushes to `main`.
+   Also a short PR template (tests, docs, security implications) and an **AI review comment
+   posted on each PR before it is merged**, starting as a manual step (see Important decisions).
 3. **PC004 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
    `lastName`) and `direction` on `GET /v2/owners`, case-insensitive prefix search on both v1 and
    v2 with `%` and `_` escaped, tests including the H2 profile, docs. Then the UI Name column
@@ -87,6 +89,10 @@ In the order we agreed, one branch at a time, each merged and approved before th
   sort, owner delete fix (decided 2026-10-08).
 - PR titles start with `PCXXX`, a three-digit number counting up from PC001, followed by text you
   supply (2026-10-08).
+- Every PR gets an AI review comment before the merge (decided 2026-10-09). It is a comment, not
+  an approval, and starts as a manual step: Claude reviews the diff and posts the comment when
+  asked. ⚠️ An automated GitHub Action is possible later, but it needs an API key stored as a repo
+  secret and a third-party action, so it needs a security look first.
 - ADR numbering has no gaps: the role-hierarchy ADR is now 0006 (2026-10-08). The old ADR-0006
   (pet/owner wiring) lives in `docs/architecture/` because it was a bug fix, not a decision.
 
