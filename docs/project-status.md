@@ -106,8 +106,8 @@ In the order we agreed, one branch at a time, each merged and approved before th
   `useState`. No global store, form library or UI kit.
 - Three layers per feature: plain `api/` functions, one hooks file, then components.
 - Extract a shared component only after its second or third use.
-- API types are hand-written for now; generating them from `openapi.yml` is anticipated by
-  ADR-0003 but undecided.
+- API types are hand-written for now. Generating them from `openapi.yml` with `openapi-typescript`
+  (types only) is planned after PC003; see the Backlog.
 
 **Owner UI**
 - Add owner and Edit owner are their own pages, not dialogs.
@@ -142,4 +142,14 @@ past about ten items, move it to GitHub Issues and link them here.
   workflows need their paths adjusted for the `spring-petclinic-rest` subfolder, so try them on a
   branch first. Dependabot PRs #1 and #2 were closed unmerged on 2026-10-08 (springdoc 3.1.0 and
   refactor-first plugin 0.9.0 stay as they are).
+- **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
+  timing: a small PR after PC003 (CI) and before Add pet, when the type count grows. Plan: add
+  `openapi-typescript` as a dev dependency (types only, nothing shipped in the bundle; pin the
+  version), an npm script reading `spring-petclinic-rest/src/main/resources/openapi.yml`, a
+  committed generated file, `types.ts` re-exporting friendly names so screens do not change, and a
+  CI check that fails when the committed file is out of date. Keep our own fetch client and query
+  hooks (no generated client or hooks), and keep `ownerValidation.ts` hand-written, because types
+  do not encode rules such as "exactly 10 digits". ⚠️ Check how readonly fields (`id`, `pets`)
+  come out, and that the spec matches real responses (the hand-written `Visit` already lacks
+  `petId`).
 - ✅ Dependabot **security updates** were enabled in the GitHub repo settings (2026-10-09).
