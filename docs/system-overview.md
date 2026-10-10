@@ -76,7 +76,17 @@ raw JPQL.
   `@RequestMapping`s from scratch.
 - **v2** (`rest/controller/v2`): currently just paginated listing —
   `GET /api/v2/owners` and `GET /api/v2/pets` — returning `Page<T>` wrapped in a
-  page DTO. Not a full parallel CRUD surface.
+  page DTO. Not a full parallel CRUD surface. `GET /api/v2/owners` also takes `sort`
+  (`id`, the default, or `lastName`) and `direction` (`asc`, the default, or `desc`); both are
+  whitelisted in the spec and mapped to a `Sort` in the controller, never used as a raw
+  property name. A last-name sort ignores case and breaks ties on first name, then id, in the
+  chosen direction. The `lastName` search (here and in `GET /api/owners`) is a case-insensitive
+  prefix match in which `%` and `_` are literal characters, not wildcards.
+- **Bad input answers 400.** `ExceptionControllerAdvice` maps bean-validation failures (request
+  parameters such as `size=0` or `page=-1`, and entity rules such as the telephone), parameter
+  type mismatches (`page=abc`) and invalid sort values to a `400` ProblemDetail with the offending
+  fields in `schemaValidationErrors`. Unexpected errors stay `500`, and data-integrity errors are
+  still mapped to `404`.
 - **Root** (`RootRestControllerV1`): `GET /` redirects to
   `/petclinic/swagger-ui/index.html`.
 
@@ -103,6 +113,16 @@ schema/seed SQL exist for `h2`, `hsqldb`, `mysql`, and `postgres`
 `src/main/resources/db/<profile>/`). In the default `h2` profile, schema and seed
 data reload on every restart (`spring.sql.init.mode=always`) — convenient for
 local dev, not representative of a persistent environment.
+
+**Tests and the database.** Most tests run on HSQLDB, whose schema declares `last_name` as
+`VARCHAR_IGNORECASE`, so text comparisons there are case-insensitive. H2 (the default) compares
+text case-sensitively. Anything that depends on text comparison or sorting must therefore also be
+tested on H2: `ClinicServiceH2Tests` runs the shared service tests on H2 and
+`OwnerRestControllerV2IntegrationTests` runs the owner endpoints on H2, each with its own
+in-memory database name (two test contexts sharing one name would run the schema twice).
+PostgreSQL and MySQL are not exercised by the tests; the owner queries use portable JPQL
+(`LOWER`, `LIKE ... ESCAPE '!'`, with `!` rather than a backslash because MySQL treats a backslash
+specially in string literals).
 
 ### Cross-cutting concerns
 
@@ -136,8 +156,9 @@ ahead of implementation.
 
 Vite + React 19 + TypeScript, with React Router and TanStack Query. It has an app
 shell (header, navigation, an assistant-panel preview that is not connected to
-anything), an Owners page (paged, searchable list from `GET /v2/owners`) and an Add
-owner page (`POST /owners`); Owner details is a placeholder. It does not call
+anything), an Owners page (paged list from `GET /v2/owners`, searchable and sortable by last
+name), Add and Edit owner pages (`POST` and `PUT /owners`) and an Owner details page with Delete.
+It does not call
 `petclinic-ai-agent` yet. Screens, navigation, endpoint mapping and visual conventions
 are documented in [docs/ui](ui/ui-overview.md).
 

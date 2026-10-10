@@ -33,8 +33,9 @@ for its behavior and the confirmation rule.
 **1. Owner search** — Table of Name ("Last, First"), Telephone, Address, City, Pets (first
 two names then "+N"), paged with a page-size choice (10/20/50, default 20). Selecting an
 owner opens screen 2. The search box filters by last name (prefix match, via the API's
-`lastName` parameter). "Add owner" is the page's primary action. Not sortable until the
-backend supports it (see Deferred).
+`lastName` parameter, ignoring case). "Add owner" is the page's primary action. The **Name**
+column sorts by last name: its header is a button that cycles A to Z, Z to A, then back to the
+default id order, and each change returns to page 1. Only Name is sortable.
 
 **2. Owner details** — Header with the owner's name, **Edit owner** and **Delete owner**; a Contact
 section (address, city, formatted telephone); a Pets section with one card per pet showing name,
@@ -69,9 +70,8 @@ built.
 
 ## Deferred
 
-- **Sortable Name column** (by last name, ascending/descending) and **case-insensitive
-  search**: approved design, implemented in the backend and then the UI on a separate branch
-  after the owner UI branch is merged.
+Nothing is deferred at the moment. The sortable Name column and the case-insensitive search
+that used to be listed here were built in PC004.
 
 ## Suggested build order
 

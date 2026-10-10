@@ -15,8 +15,8 @@ start of each week and replace the sections below; older weeks stay in git histo
 - CI and repo hygiene are on `main` (PR #5, **PC003_CI_Repo_Enhancements**, squash-merged
   2026-10-10): root Dependabot config, Backend CI, UI CI and Newman smoke tests on every PR and on
   pushes to `main`, and a PR template. The `main protection` ruleset is active.
-- **PC004** (last-name sort, case-insensitive search and the telephone fix) is in progress on
-  `feature/PC004_backend_owner_sort_fix`.
+- **PC004** (last-name sort, case-insensitive search and the telephone fix) is built and tested
+  on `feature/PC004_backend_owner_sort_fix`, ready for review.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -31,6 +31,21 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Fix for denied `@PreAuthorize` checks returning 500 instead of 403** (2026-10-05).
 - **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
   single-character names outside loops and short callbacks.
+
+**PC004, built, ready for review** (`feature/PC004_backend_owner_sort_fix`; 221 backend tests, 112 UI tests)
+- **Sort:** `GET /v2/owners` takes `sort` (`id` or `lastName`) and `direction` (`asc` or `desc`);
+  last-name sorts ignore case and break ties on first name, then id. The Name column header in the
+  UI cycles A to Z, Z to A, default, with the sort in the URL.
+- **Search:** case-insensitive on both v1 and v2, and `%` and `_` are literal (before, `%` listed
+  every owner and `D_vis` matched `Davis`).
+- **Telephone:** the spec now requires exactly 10 digits, matching the entity; the UI form uses the
+  same rule.
+- **400, not 500:** bad `size`, `page`, `sort` and `direction` values, type mismatches and entity
+  rule violations now answer 400 with the offending field.
+- **Found while testing:** most backend tests run on HSQLDB, whose `last_name` column is
+  case-insensitive, so they could not prove the case-insensitive search. Added `ClinicServiceH2Tests`
+  and made the owner end-to-end tests run on H2 (the default database); with the old queries four
+  H2 tests fail.
 
 **PC003, merged 2026-10-10** (PR #5)
 - Dependabot config moved to the repo root, with monthly grouped updates and at most three open
@@ -59,8 +74,8 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC004 ⚠️, last-name sort, case-insensitive search and the telephone fix** (in progress,
-   `feature/PC004_backend_owner_sort_fix`).
+1. **PC004 ⚠️, last-name sort, case-insensitive search and the telephone fix** (built, ready for
+   review on `feature/PC004_backend_owner_sort_fix`; the plan below is what was built).
    - **Sort and search, backend first:** `sort` (`id` or `lastName`, default `id`) and `direction`
      (`asc` or `desc`, default `asc`) on `GET /v2/owners`; last-name sorts break ties on first name,
      then id; an invalid `sort` returns 400. Search becomes case-insensitive on both v1 and v2 with
@@ -92,8 +107,6 @@ In the order we agreed, one branch at a time, each merged and approved before th
   is at `C:\Users\vince\.jdks\openjdk-25.0.2`). IntelliJ is unaffected.
 - **Known and accepted:** the paged owners query loads each owner's pets separately (about 21
   queries per 20-row page). Deliberately left alone.
-- **Telephone rule mismatch** (entity: exactly 10 digits; spec and UI: up to 20). A bad number
-  returns 500, not 400. In progress in PC004.
 - ⚠️ **Last-write-wins edits:** `PUT /owners/{id}` has no version or ETag, so two people editing
   the same owner overwrite each other silently.
 
@@ -165,6 +178,13 @@ past about ten items, move it to GitHub Issues and link them here.
   updates, not security fixes, so the backend stays on springdoc 3.1.0, refactor-first 0.9.0 and
   the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
   Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
+- **Show the server's field messages in the forms.** A 400 from the API shows only "The request
+  contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
+  reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not
+  user-friendly, so this needs wording work too.
+- **PostgreSQL and MySQL are not exercised by the tests.** The owner queries use portable JPQL, but
+  only H2 and HSQLDB are verified. A Testcontainers-based test would close the gap. Also consider a
+  functional index on `lower(last_name)` for PostgreSQL (`LOWER()` stops the plain index being used).
 - **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
   timing: a small PR before Add pet, when the type count grows (the CI freshness check is now
   possible, since PC003 is merged). Plan: add
