@@ -108,6 +108,24 @@
   color: var(--color-muted);
 }
 
+/* The Name header is a button that sorts by last name; it looks like the other headers. */
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.sortButton:hover {
+  color: var(--color-text);
+}
+
 /* Secondary lines inside the name cell, used when columns are hidden on narrower screens. */
 .metaAddress,
 .metaAddressCity,

@@ -42,8 +42,15 @@ export interface OwnerPage {
   totalPages: number
 }
 
+export type OwnerSortField = 'id' | 'lastName'
+export type SortDirection = 'asc' | 'desc'
+
 export interface ListOwnersParams {
   lastName?: string
+  /** The API defaults to id. */
+  sort?: OwnerSortField
+  /** The API defaults to asc. */
+  direction?: SortDirection
   page?: number
   size?: number
 }

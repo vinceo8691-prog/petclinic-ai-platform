@@ -221,6 +221,100 @@ describe('OwnersPage', () => {
     expect(screen.getByRole('button', { name: 'Go to first page' })).toBeInTheDocument()
   })
 
+  describe('sorting by name', () => {
+    const nameButton = () => screen.getByRole('button', { name: /^Name/ })
+    const nameHeader = () => screen.getByRole('columnheader', { name: /^Name/ })
+
+    it('shows the default order with a Name button that has not sorted yet', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp()
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'none')
+      expect(nameButton()).toHaveAccessibleName('Name, sort A to Z')
+      expect(requestedUrls(fetchMock)[0]).not.toContain('sort')
+    })
+
+    it('cycles A to Z, Z to A, then back to the default order', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp()
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      await userEvent.click(nameButton())
+      await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('sort=lastName&direction=asc'))
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'ascending')
+      expect(nameButton()).toHaveAccessibleName('Name, sorted A to Z, activate to sort Z to A')
+
+      await userEvent.click(nameButton())
+      await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('sort=lastName&direction=desc'))
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'descending')
+      expect(nameButton()).toHaveAccessibleName('Name, sorted Z to A, activate to clear the sorting')
+
+      await userEvent.click(nameButton())
+      await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).not.toContain('sort='))
+      expect(requestedUrls(fetchMock).at(-1)).not.toContain('direction=')
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'none')
+    })
+
+    it('goes back to page 1 whenever the sort changes', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp('/owners?page=2')
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      await userEvent.click(nameButton())
+
+      await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('page=0'))
+      expect(requestedUrls(fetchMock).at(-1)).toContain('sort=lastName&direction=asc')
+    })
+
+    it('keeps the search text when sorting', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp('/owners?lastName=Dav')
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      await userEvent.click(nameButton())
+
+      await waitFor(() => expect(requestedUrls(fetchMock).at(-1)).toContain('lastName=Dav'))
+      expect(requestedUrls(fetchMock).at(-1)).toContain('sort=lastName&direction=asc')
+      expect(screen.getByRole('searchbox')).toHaveValue('Dav')
+    })
+
+    it('reads the sort from the URL, so a reload or a shared link keeps it', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp('/owners?sort=lastName&direction=desc')
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      expect(requestedUrls(fetchMock)[0]).toBe(
+        '/petclinic/api/v2/owners?page=0&size=20&sort=lastName&direction=desc',
+      )
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'descending')
+    })
+
+    it('ignores sort values it does not offer instead of sending them to the API', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp('/owners?sort=firstName&direction=desc')
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      expect(requestedUrls(fetchMock)[0]).toBe('/petclinic/api/v2/owners?page=0&size=20')
+      expect(nameHeader()).toHaveAttribute('aria-sort', 'none')
+    })
+
+    it('treats an unknown direction as ascending', async () => {
+      const fetchMock = mockFetch(() => jsonResponse(makePage()))
+      renderApp('/owners?sort=lastName&direction=sideways')
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      expect(requestedUrls(fetchMock)[0]).toContain('sort=lastName&direction=asc')
+    })
+
+    it('shows plain Name text, not a button, while the first load is in progress', () => {
+      mockFetch(() => new Promise(() => {}))
+      renderApp()
+
+      expect(screen.queryByRole('button', { name: /^Name/ })).not.toBeInTheDocument()
+    })
+  })
+
   it('sets the document title', async () => {
     mockFetch(() => jsonResponse(makePage()))
     renderApp()
