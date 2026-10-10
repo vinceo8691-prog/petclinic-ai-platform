@@ -32,22 +32,47 @@ describe('validateOwner', () => {
     expect(validateOwnerField('firstName', 'a'.repeat(31))).toBe('First name must be 30 characters or fewer.')
     expect(validateOwnerField('address', 'a'.repeat(256))).toBe('Address must be 255 characters or fewer.')
     expect(validateOwnerField('city', 'a'.repeat(81))).toBe('City must be 80 characters or fewer.')
-    expect(validateOwnerField('telephone', '1'.repeat(21))).toBe('Telephone must be 20 characters or fewer.')
   })
 
-  it('requires digits only for telephone', () => {
-    expect(validateOwnerField('telephone', '608-555-1023')).toBe('Telephone must contain digits only.')
+  describe('telephone', () => {
+    const message = 'Telephone must be exactly 10 digits, with no spaces or dashes.'
+
+    it('accepts exactly 10 digits', () => {
+      expect(validateOwnerField('telephone', '6085551023')).toBeUndefined()
+      expect(validateOwnerField('telephone', ' 6085551023 ')).toBeUndefined()
+    })
+
+    it('rejects fewer than 10 digits', () => {
+      expect(validateOwnerField('telephone', '5551234')).toBe(message)
+      expect(validateOwnerField('telephone', '123456789')).toBe(message)
+    })
+
+    it('rejects more than 10 digits', () => {
+      expect(validateOwnerField('telephone', '60855510231')).toBe(message)
+      expect(validateOwnerField('telephone', '1'.repeat(21))).toBe(message)
+    })
+
+    it('rejects anything that is not all digits', () => {
+      expect(validateOwnerField('telephone', '608-555-1023')).toBe(message)
+      expect(validateOwnerField('telephone', '(608) 5551023')).toBe(message)
+      expect(validateOwnerField('telephone', '608555102a')).toBe(message)
+    })
+
+    it('still reports an empty telephone as required', () => {
+      expect(validateOwnerField('telephone', '')).toBe('Telephone is required.')
+      expect(validateOwnerField('telephone', '   ')).toBe('Telephone is required.')
+    })
   })
 })
 
 describe('trimOwner', () => {
   it('trims every field', () => {
-    expect(trimOwner({ firstName: ' A ', lastName: ' B ', address: ' C ', city: ' D ', telephone: ' 1 ' })).toEqual({
+    expect(trimOwner({ firstName: ' A ', lastName: ' B ', address: ' C ', city: ' D ', telephone: ' 6085551023 ' })).toEqual({
       firstName: 'A',
       lastName: 'B',
       address: 'C',
       city: 'D',
-      telephone: '1',
+      telephone: '6085551023',
     })
   })
 })

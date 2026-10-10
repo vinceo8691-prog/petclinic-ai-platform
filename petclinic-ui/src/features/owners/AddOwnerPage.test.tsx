@@ -40,6 +40,31 @@ describe('AddOwnerPage', () => {
     expect(input).toHaveAttribute('aria-invalid', 'false')
   })
 
+  it.each(['5551234', '60855510231', '608-555-1023'])(
+    'blocks the telephone "%s" because it is not exactly 10 digits, without calling the API',
+    async (telephone) => {
+      const fetchMock = vi.fn<typeof fetch>()
+      vi.stubGlobal('fetch', fetchMock)
+      renderApp('/owners/new')
+      await fillValid()
+      const field = screen.getByLabelText('Telephone')
+      await userEvent.clear(field)
+      await userEvent.type(field, telephone)
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save owner' }))
+
+      expect(field).toHaveAttribute('aria-invalid', 'true')
+      expect(field).toHaveAccessibleDescription(/Telephone must be exactly 10 digits/)
+      expect(fetchMock).not.toHaveBeenCalled()
+    },
+  )
+
+  it('tells the user the telephone is 10 digits before they type it', () => {
+    renderApp('/owners/new')
+
+    expect(screen.getByLabelText('Telephone')).toHaveAccessibleDescription('10 digits, no spaces or dashes.')
+  })
+
   it('blocks submit, summarizes the errors and focuses the summary', async () => {
     const fetchMock = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetchMock)
