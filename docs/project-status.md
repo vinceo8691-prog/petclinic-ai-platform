@@ -1,6 +1,6 @@
 # Project Status
 
-**Week of 2026-10-05 to 2026-10-11**, written 2026-10-08 (Thursday). Update this file at the
+**Week of 2026-10-05 to 2026-10-11**, updated 2026-10-10 (Saturday). Update this file at the
 start of each week and replace the sections below; older weeks stay in git history.
 
 > ⚠️ **Assumptions to confirm** are marked with ⚠️. The week boundaries (Monday to Sunday) and
@@ -12,7 +12,11 @@ start of each week and replace the sections below; older weeks stay in git histo
   (PR #3, **PC001_Owner_UI_Screen**, merged 2026-10-08).
 - Owner details, Edit owner and Delete owner are on `main` (PR #4, **PC002_Owner_Details_Screen**,
   merged 2026-10-10). (#4 is GitHub's own number; PC002 is our title prefix.)
-- **PC003** (CI and repo hygiene) is in progress on `feature/CIRepoEnhancements`.
+- CI and repo hygiene are on `main` (PR #5, **PC003_CI_Repo_Enhancements**, squash-merged
+  2026-10-10): root Dependabot config, Backend CI, UI CI and Newman smoke tests on every PR and on
+  pushes to `main`, and a PR template. The `main protection` ruleset is active.
+- **PC004** (last-name sort, case-insensitive search and the telephone fix) is in progress on
+  `feature/backend_owner_sort_fix`.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -27,6 +31,12 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Fix for denied `@PreAuthorize` checks returning 500 instead of 403** (2026-10-05).
 - **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
   single-character names outside loops and short callbacks.
+
+**PC003, merged 2026-10-10** (PR #5)
+- Dependabot config moved to the repo root, with monthly grouped updates and at most three open
+  PRs per ecosystem; Backend CI, UI CI and Newman smoke tests (no path filters); a PR template;
+  `mvnw` made executable in git. All checks passed on GitHub, including GitHub's own Dependabot
+  config validation.
 
 **PC002, merged 2026-10-10** (`feature/OwnerDetailsScreen`; 96 UI tests, lint and build pass)
 - **Redesign:** teal page background and artwork, one large rounded card, header with the dog
@@ -49,29 +59,25 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC003, CI and repo hygiene** (in progress, below).
-   Done on the branch: root Dependabot config, Backend CI, UI CI, Newman smoke tests and the PR
-   template (no path filters, because a skipped required check would block merges). Still to do
-   after the PR's checks have run once: the GitHub ruleset on `main` (you set it in the repo
-   settings; required checks can only be picked once they have run). Original scope (decided
-   2026-10-09, moved ahead of the sort work so its tests run in CI): move the Dependabot config
-   and the build workflows to the repo root and
-   adjust them for the `spring-petclinic-rest` subfolder, add a UI workflow (`npm ci`, lint, test,
-   build), keep the Docker Hub push out, and set up a GitHub ruleset on `main` (pull request and
-   passing checks required, approvals 0). CI runs on every PR and again on pushes to `main`.
-   Also a short PR template (tests, docs, security implications) and an **AI review comment
-   posted on each PR before it is merged**, starting as a manual step (see Important decisions).
-2. **PC004 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
-   `lastName`) and `direction` on `GET /v2/owners`, case-insensitive prefix search on both v1 and
-   v2 with `%` and `_` escaped, tests including the H2 profile, docs. Then the UI Name column
-   sort. Full design is in the saved plan. Also fix the **telephone validation mismatch** here (moved in 2026-10-09): the entity requires
-   exactly 10 digits but `openapi.yml` allows up to 20, so a bad number gets a 500; change the spec
-   to exactly 10 digits, map entity validation failures to 400, and update the UI rule and docs to
-   match. Also draft the **agent-authorization ADR** during
-   this backend work (the backend enforces AI-write permission; the agent's credentials are
-   read-only).
-3. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
-4. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
+1. **PC004 ⚠️, last-name sort, case-insensitive search and the telephone fix** (in progress,
+   `feature/backend_owner_sort_fix`).
+   - **Sort and search, backend first:** `sort` (`id` or `lastName`, default `id`) and `direction`
+     (`asc` or `desc`, default `asc`) on `GET /v2/owners`; last-name sorts break ties on first name,
+     then id; an invalid `sort` returns 400. Search becomes case-insensitive on both v1 and v2 with
+     `%` and `_` escaped. Tests include the H2 profile; docs updated. Then the UI Name column sort
+     (`aria-sort`, URL parameters). Full design is in the saved plan.
+   - **Telephone validation mismatch:** the entity requires exactly 10 digits but `openapi.yml`
+     allows up to 20, so a bad number gets a 500. Change the spec to exactly 10 digits, map entity
+     validation failures to 400, and update the UI rule, tests and docs to match.
+2. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
+3. **Agent-authorization ADR, its own branch and PR ⚠️** (number not assigned; by default after
+   PC005). Moved out of the sort PR on 2026-10-10 because it also needs a new role or scope in the
+   backend. The backend enforces what AI-initiated writes may do; the agent's own credentials are
+   read-only; a confirmed write runs with the confirming user's credentials and the exact approved
+   payload, audited as AI-proposed and user-confirmed.
+4. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
+   Backlog).
+5. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
    the assistant once `petclinic-ai-agent` has endpoints.
 
 ## Blockers and risks
@@ -87,7 +93,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - **Known and accepted:** the paged owners query loads each owner's pets separately (about 21
   queries per 20-row page). Deliberately left alone.
 - **Telephone rule mismatch** (entity: exactly 10 digits; spec and UI: up to 20). A bad number
-  returns 500, not 400. Scheduled in PC004.
+  returns 500, not 400. In progress in PC004.
 - ⚠️ **Last-write-wins edits:** `PUT /owners/{id}` has no version or ETag, so two people editing
   the same owner overwrite each other silently.
 
@@ -111,7 +117,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - Three layers per feature: plain `api/` functions, one hooks file, then components.
 - Extract a shared component only after its second or third use.
 - API types are hand-written for now. Generating them from `openapi.yml` with `openapi-typescript`
-  (types only) is planned after PC003; see the Backlog.
+  (types only) is planned after PC005 and the ADR branch; see the Backlog.
 
 **Owner UI**
 - Add owner and Edit owner are their own pages, not dialogs.
@@ -140,7 +146,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 Items with no date yet. **Copy this section forward each week; do not replace it.** If it grows
 past about ten items, move it to GitHub Issues and link them here.
 
-- **Dependabot config and workflows moved to the repo root** (done in PC003, pending merge).
+- **Dependabot config and workflows moved to the repo root** (done in PC003, merged).
   They had sat in `spring-petclinic-rest/.github/`, which GitHub does not read. Dependabot PRs #1
   and #2 were closed unmerged on 2026-10-08 (springdoc 3.1.0 and refactor-first plugin 0.9.0 stay
   as they are). Left behind on purpose: `spring-petclinic-rest/.github/workflows/docker-build.yml`
@@ -148,8 +154,17 @@ past about ten items, move it to GitHub Issues and link them here.
   deploys to AWS). Delete it or replace it when the image registry is decided.
 - **`mvnw` was not executable in git** (mode 100644), which would have failed `./mvnw` on the Linux
   runners. Fixed in PC003 (now 100755).
+- **Triage the first Dependabot PRs (#6 to #12, opened 2026-10-10).** Checks on 2026-10-10: the
+  action bumps #6 (`upload-artifact`), #7 (`checkout`) and #8 (`setup-node`), the UI group #9
+  and the Maven group #11 (five updates, including springdoc 3.1.1 and the refactor-first plugin
+  0.10.0 that the earlier closed PRs proposed) are all green. #10 (`@vitejs/plugin-react` 6) and
+  #12 (`typescript` 7) fail at `npm ci` with a dependency conflict (plugin-react 6 needs a newer
+  Vite than our 6.4.3; typescript-eslint 8.71.0 does not support TypeScript 7), so they are
+  closed or ignored until a deliberate upgrade. Merge or close each as you decide; merged action
+  PRs may need `@dependabot rebase` because they edit the same workflow files.
 - **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
-  timing: a small PR after PC003 (CI) and before Add pet, when the type count grows. Plan: add
+  timing: a small PR before Add pet, when the type count grows (the CI freshness check is now
+  possible, since PC003 is merged). Plan: add
   `openapi-typescript` as a dev dependency (types only, nothing shipped in the bundle; pin the
   version), an npm script reading `spring-petclinic-rest/src/main/resources/openapi.yml`, a
   committed generated file, `types.ts` re-exporting friendly names so screens do not change, and a
