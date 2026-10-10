@@ -60,7 +60,10 @@ In the order we agreed, one branch at a time, each merged and approved before th
 3. **PC004 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
    `lastName`) and `direction` on `GET /v2/owners`, case-insensitive prefix search on both v1 and
    v2 with `%` and `_` escaped, tests including the H2 profile, docs. Then the UI Name column
-   sort. Full design is in the saved plan. Also draft the **agent-authorization ADR** during
+   sort. Full design is in the saved plan. Also fix the **telephone validation mismatch** here (moved in 2026-10-09): the entity requires
+   exactly 10 digits but `openapi.yml` allows up to 20, so a bad number gets a 500; change the spec
+   to exactly 10 digits, map entity validation failures to 400, and update the UI rule and docs to
+   match. Also draft the **agent-authorization ADR** during
    this backend work (the backend enforces AI-write permission; the agent's credentials are
    read-only).
 4. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
@@ -79,6 +82,8 @@ In the order we agreed, one branch at a time, each merged and approved before th
   is at `C:\Users\vince\.jdks\openjdk-25.0.2`). IntelliJ is unaffected.
 - **Known and accepted:** the paged owners query loads each owner's pets separately (about 21
   queries per 20-row page). Deliberately left alone.
+- **Telephone rule mismatch** (entity: exactly 10 digits; spec and UI: up to 20). A bad number
+  returns 500, not 400. Scheduled in PC004.
 - ⚠️ **Last-write-wins edits:** `PUT /owners/{id}` has no version or ETag, so two people editing
   the same owner overwrite each other silently.
 
