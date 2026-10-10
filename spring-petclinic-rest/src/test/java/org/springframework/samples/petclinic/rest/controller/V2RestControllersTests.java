@@ -120,6 +120,67 @@ public class V2RestControllersTests {
 
     @Test
     @WithMockUser(roles = "OWNER_ADMIN")
+    void testGetOwnersPageSortedByLastNameAscendingBreaksTiesOnFirstNameThenId() throws Exception {
+        var sort = Sort.by(
+            new Sort.Order(Sort.Direction.ASC, "lastName").ignoreCase(),
+            new Sort.Order(Sort.Direction.ASC, "firstName").ignoreCase(),
+            new Sort.Order(Sort.Direction.ASC, "id"));
+        var pageRequest = PageRequest.of(0, 4, sort);
+        var pageOwners = ownerMapper.toOwners(owners).stream().toList();
+        given(this.ownerService.findOwners(null, pageRequest))
+            .willReturn(new PageImpl<>(pageOwners, pageRequest, owners.size()));
+        this.mockMvc.perform(get("/api/v2/owners?sort=lastName&direction=asc&page=0&size=4")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(4));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void testGetOwnersPageSortedByLastNameDescendingReversesEveryKey() throws Exception {
+        var sort = Sort.by(
+            new Sort.Order(Sort.Direction.DESC, "lastName").ignoreCase(),
+            new Sort.Order(Sort.Direction.DESC, "firstName").ignoreCase(),
+            new Sort.Order(Sort.Direction.DESC, "id"));
+        var pageRequest = PageRequest.of(1, 2, sort);
+        var pageOwners = ownerMapper.toOwners(owners.subList(0, 2)).stream().toList();
+        given(this.ownerService.findOwners("Dav", pageRequest))
+            .willReturn(new PageImpl<>(pageOwners, pageRequest, owners.size()));
+        this.mockMvc.perform(get("/api/v2/owners?lastName=Dav&sort=lastName&direction=desc&page=1&size=2")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page").value(1))
+            .andExpect(jsonPath("$.content.length()").value(2));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void testGetOwnersPageSortedByIdDescending() throws Exception {
+        var pageRequest = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "id"));
+        var pageOwners = ownerMapper.toOwners(owners.subList(2, 4)).stream().toList();
+        given(this.ownerService.findOwners(null, pageRequest))
+            .willReturn(new PageImpl<>(pageOwners, pageRequest, owners.size()));
+        this.mockMvc.perform(get("/api/v2/owners?sort=id&direction=desc&page=0&size=2")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].id").value(3));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void testGetOwnersPageWithoutSortParametersSortsByIdAscending() throws Exception {
+        var pageRequest = PageRequest.of(0, 20, Sort.by("id"));
+        given(this.ownerService.findOwners(null, pageRequest))
+            .willReturn(new PageImpl<>(ownerMapper.toOwners(owners).stream().toList(), pageRequest, owners.size()));
+        this.mockMvc.perform(get("/api/v2/owners")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].id").value(1))
+            .andExpect(jsonPath("$.size").value(20));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
     void testGetPetsPageSuccess() throws Exception {
         var pageRequest = PageRequest.of(0, 5, Sort.by("id"));
         var pagePets = petMapper.toPets(pets).stream().toList();

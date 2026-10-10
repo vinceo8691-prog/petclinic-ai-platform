@@ -151,6 +151,32 @@ paths:
           schema:
             type: string
             example: Davis
+        - name: sort
+          in: query
+          description: >-
+            Field to sort by. Sorting by lastName breaks ties on first name, then id, ignoring case.
+            Any other value is rejected with a 400.
+          required: false
+          schema:
+            type: string
+            enum:
+              - id
+              - lastName
+            pattern: '^(id|lastName)$'
+            default: id
+            example: lastName
+        - name: direction
+          in: query
+          description: Sort direction. Any other value is rejected with a 400.
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            pattern: '^(asc|desc)$'
+            default: asc
+            example: asc
         - name: page
           in: query
           description: Zero-based page index.
