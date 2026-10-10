@@ -104,7 +104,9 @@ paths:
       parameters:
         - name: lastName
           in: query
-          description: Last name.
+          description: >-
+            Last name prefix. Matches owners whose last name starts with this text, ignoring case.
+            % and _ are matched literally, not as wildcards.
           required: false
           schema:
             type: string
@@ -146,11 +148,39 @@ paths:
       parameters:
         - name: lastName
           in: query
-          description: Last name.
+          description: >-
+            Last name prefix. Matches owners whose last name starts with this text, ignoring case.
+            % and _ are matched literally, not as wildcards.
           required: false
           schema:
             type: string
             example: Davis
+        - name: sort
+          in: query
+          description: >-
+            Field to sort by. Sorting by lastName breaks ties on first name, then id, ignoring case.
+            Any other value is rejected with a 400.
+          required: false
+          schema:
+            type: string
+            enum:
+              - id
+              - lastName
+            pattern: '^(id|lastName)$'
+            default: id
+            example: lastName
+        - name: direction
+          in: query
+          description: Sort direction. Any other value is rejected with a 400.
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            pattern: '^(asc|desc)$'
+            default: asc
+            example: asc
         - name: page
           in: query
           description: Zero-based page index.
@@ -2025,11 +2055,13 @@ components:
           example: Madison
         telephone:
           title: Telephone number
-          description: The telephone number of the pet owner.
+          description: >-
+            The telephone number of the pet owner: exactly 10 digits, with no spaces or dashes.
+            This matches the rule the Owner entity enforces when it is saved.
           type: string
-          minLength: 1
-          maxLength: 20
-          pattern: '^[0-9]*$'
+          minLength: 10
+          maxLength: 10
+          pattern: '^[0-9]{10}$'
           example: '6085551023'
       required:
         - firstName

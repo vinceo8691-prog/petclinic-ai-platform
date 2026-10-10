@@ -89,7 +89,7 @@ export function OwnerForm({ initialValues, submitLabel, pendingLabel, isPending,
         <TextField
           id="owner-telephone"
           label="Telephone"
-          hint="Digits only, no spaces or dashes."
+          hint="10 digits, no spaces or dashes."
           error={visible('telephone')}
           type="tel"
           inputMode="numeric"

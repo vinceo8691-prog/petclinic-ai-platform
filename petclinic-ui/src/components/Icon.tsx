@@ -10,6 +10,9 @@ const PATHS = {
   eye: 'M1.5 8s2.3-4.5 6.5-4.5S14.5 8 14.5 8s-2.3 4.5-6.5 4.5S1.5 8 1.5 8zM8 9.8a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z',
   edit: 'M11 2.5 13.5 5 5.5 13H3v-2.5L11 2.5zM9.5 4 12 6.5',
   trash: 'M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 8.5h6.6l.7-8.5M6.7 7v4M9.3 7v4',
+  sortAsc: 'M8 13V3M4 7l4-4 4 4',
+  sortDesc: 'M8 3v10M4 9l4 4 4-4',
+  sortNone: 'M5 6l3-3 3 3M5 10l3 3 3-3',
 } as const
 
 export type IconName = keyof typeof PATHS

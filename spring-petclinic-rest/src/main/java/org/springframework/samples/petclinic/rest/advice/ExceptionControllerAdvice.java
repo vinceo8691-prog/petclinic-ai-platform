@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Objects;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,10 +34,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.samples.petclinic.rest.controller.BindingErrorsResponse;
 import org.springframework.samples.petclinic.rest.dto.ValidationMessageDto;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Global Exception handler for REST controllers.
@@ -146,18 +151,8 @@ public class ExceptionControllerAdvice {
         if (bindingResult.hasErrors()) {
             errors.addAllErrors(bindingResult);
             List<ValidationMessageDto> schemaValidationErrors = bindingResult.getFieldErrors().stream()
-                .map(fieldError -> {
-                    String rejectedValue = Objects.toString(fieldError.getRejectedValue(), "null");
-                    String defaultMessage = Objects.toString(fieldError.getDefaultMessage(), "Validation failed");
-                    String message = "Field '%s' %s (rejected value: %s)".formatted(
-                        fieldError.getField(),
-                        defaultMessage,
-                        rejectedValue);
-                    return new ValidationMessageDto(message)
-                        .putAdditionalProperty("field", fieldError.getField())
-                        .putAdditionalProperty("rejectedValue", rejectedValue)
-                        .putAdditionalProperty("defaultMessage", defaultMessage);
-                })
+                .map(fieldError -> validationMessage(
+                    fieldError.getField(), fieldError.getRejectedValue(), fieldError.getDefaultMessage()))
                 .toList();
             logger.debug("Validation error at {} {}: {}",
                 request.getMethod(),
@@ -169,4 +164,86 @@ public class ExceptionControllerAdvice {
         return ResponseEntity.status(status).body(detail);
     }
 
+    /**
+     * Handles {@link ConstraintViolationException} (Jakarta Bean Validation): a violated rule on a request
+     * parameter such as {@code size=0} or {@code page=-1}, or on an entity when it is saved, such as a telephone
+     * number that is not 10 digits. Both are the client's input, so the answer is 400, not 500.
+     *
+     * @param e The {@link ConstraintViolationException} to be handled
+     * @param request {@link HttpServletRequest} object referring to the current request.
+     * @return A {@link ResponseEntity} containing the error information and a 400 Bad Request status.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request) {
+        List<ValidationMessageDto> errors = e.getConstraintViolations().stream()
+            .map(violation -> validationMessage(
+                lastNodeName(violation.getPropertyPath()), violation.getInvalidValue(), violation.getMessage()))
+            .toList();
+        return badRequest(e, request, errors);
+    }
+
+    /**
+     * Handles {@link HandlerMethodValidationException}, which Spring MVC throws instead of
+     * {@link ConstraintViolationException} when it validates controller method parameters itself.
+     *
+     * @param e The {@link HandlerMethodValidationException} to be handled
+     * @param request {@link HttpServletRequest} object referring to the current request.
+     * @return A {@link ResponseEntity} containing the error information and a 400 Bad Request status.
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(HandlerMethodValidationException e, HttpServletRequest request) {
+        List<ValidationMessageDto> errors = e.getParameterValidationResults().stream()
+            .flatMap(result -> result.getResolvableErrors().stream()
+                .map(error -> validationMessage(parameterName(result), result.getArgument(), error.getDefaultMessage())))
+            .toList();
+        return badRequest(e, request, errors);
+    }
+
+    /**
+     * Handles {@link MethodArgumentTypeMismatchException}: a request parameter that cannot be converted to the
+     * expected type, such as {@code page=abc}.
+     *
+     * @param e The {@link MethodArgumentTypeMismatchException} to be handled
+     * @param request {@link HttpServletRequest} object referring to the current request.
+     * @return A {@link ResponseEntity} containing the error information and a 400 Bad Request status.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e, HttpServletRequest request) {
+        String expectedType = e.getRequiredType() == null ? "value of the expected type" : e.getRequiredType().getSimpleName();
+        return badRequest(e, request, List.of(validationMessage(e.getName(), e.getValue(), "must be a valid " + expectedType)));
+    }
+
+    private ResponseEntity<ProblemDetail> badRequest(Exception e, HttpServletRequest request, List<ValidationMessageDto> errors) {
+        logger.debug("Invalid request at {} {}: {}", request.getMethod(), request.getRequestURI(), errors);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), ERROR_INVALID_REQUEST);
+        detail.setProperty("schemaValidationErrors", errors);
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    private static ValidationMessageDto validationMessage(String field, Object rejectedValue, String defaultMessage) {
+        String rejected = Objects.toString(rejectedValue, "null");
+        String reason = Objects.toString(defaultMessage, "Validation failed");
+        return new ValidationMessageDto("Field '%s' %s (rejected value: %s)".formatted(field, reason, rejected))
+            .putAdditionalProperty("field", field)
+            .putAdditionalProperty("rejectedValue", rejected)
+            .putAdditionalProperty("defaultMessage", reason);
+    }
+
+    /** The name of the offending parameter or property: the last node of a path such as {@code listOwnersPage.size}. */
+    private static String lastNodeName(Path propertyPath) {
+        String name = "";
+        for (Path.Node node : propertyPath) {
+            name = node.getName();
+        }
+        return name;
+    }
+
+    private static String parameterName(ParameterValidationResult result) {
+        String name = result.getMethodParameter().getParameterName();
+        return name == null ? "parameter " + result.getMethodParameter().getParameterIndex() : name;
+    }
 }

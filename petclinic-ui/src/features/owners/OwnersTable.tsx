@@ -1,14 +1,47 @@
 import { Link, useNavigate } from 'react-router-dom'
-import type { Owner } from '../../api/types'
+import type { Owner, SortDirection } from '../../api/types'
 import { Icon } from '../../components/Icon'
 import { formatPhone, initials, splitPets, summarizePets } from '../../lib/format'
 import ui from '../../components/ui.module.css'
 import styles from './Owners.module.css'
 
-function Headers() {
+/** What activating the Name button will do next, for screen readers (the visible label stays "Name"). */
+const SORT_HINT: Record<'none' | SortDirection, string> = {
+  none: 'sort A to Z',
+  asc: 'sorted A to Z, activate to sort Z to A',
+  desc: 'sorted Z to A, activate to clear the sorting',
+}
+
+const ARIA_SORT: Record<'none' | SortDirection, 'none' | 'ascending' | 'descending'> = {
+  none: 'none',
+  asc: 'ascending',
+  desc: 'descending',
+}
+
+const SORT_ICON = { none: 'sortNone', asc: 'sortAsc', desc: 'sortDesc' } as const
+
+interface SortProps {
+  /** The current last-name sort, or undefined when the list is in id order. */
+  sortDirection?: SortDirection
+  /** Cycles A to Z, then Z to A, then back to the default order. Without it the Name header is plain text. */
+  onToggleSort?: () => void
+}
+
+function Headers({ sortDirection, onToggleSort }: SortProps) {
+  const sortState = sortDirection ?? 'none'
   return (
     <tr>
-      <th scope="col">Name</th>
+      <th scope="col" aria-sort={onToggleSort ? ARIA_SORT[sortState] : undefined}>
+        {onToggleSort ? (
+          <button type="button" className={styles.sortButton} onClick={onToggleSort}>
+            Name
+            <span className="visually-hidden">, {SORT_HINT[sortState]}</span>
+            <Icon name={SORT_ICON[sortState]} />
+          </button>
+        ) : (
+          'Name'
+        )}
+      </th>
       <th scope="col" className={styles.colTelephone}>Telephone</th>
       <th scope="col" className={styles.colAddress}>Address</th>
       <th scope="col" className={styles.colCity}>City</th>
@@ -18,14 +51,14 @@ function Headers() {
   )
 }
 
-export function OwnersTable({ owners }: { owners: Owner[] }) {
+export function OwnersTable({ owners, sortDirection, onToggleSort }: { owners: Owner[] } & SortProps) {
   const navigate = useNavigate()
 
   return (
     <table className={styles.table}>
       <caption className="visually-hidden">Pet owners</caption>
       <thead>
-        <Headers />
+        <Headers sortDirection={sortDirection} onToggleSort={onToggleSort} />
       </thead>
       <tbody>
         {owners.map((owner) => {

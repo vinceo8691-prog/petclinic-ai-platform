@@ -13,7 +13,7 @@ Security is off by default.
 
 | Screen | Endpoint | operationId | Purpose | Auth | Build |
 |---|---|---|---|---|---|
-| Owner search | `GET /v2/owners?lastName&page&size` | `listOwnersPage` | Paged owner list (`OwnerPage`) | OWNER_ADMIN | Built |
+| Owner search | `GET /v2/owners?lastName&sort&direction&page&size` | `listOwnersPage` | Paged owner list (`OwnerPage`) | OWNER_ADMIN | Built |
 | Add owner | `POST /owners` | `addOwner` | Create the owner (201 returns the `Owner`) | OWNER_ADMIN | Built |
 | Owner details | `GET /owners/{ownerId}` | `getOwner` | Owner with pets and visits | OWNER_ADMIN | Built |
 | Owner details | `DELETE /owners/{ownerId}` | `deleteOwner` | Delete action (behind a confirmation dialog) | OWNER_ADMIN | Built |
@@ -31,12 +31,18 @@ Security is off by default.
 ## Request details for built screens
 
 - **Owner search**: the UI sends `lastName` (only when non-empty, trimmed), `page` (zero-based)
-  and `size` (10, 20 or 50). Results come back in id order. `Owner.pets` is populated in each
-  row, which the Pets column uses.
+  and `size` (10, 20 or 50), plus `sort=lastName` and `direction=asc|desc` once the user has
+  sorted by Name. With no sort the API returns id order. `lastName` is a case-insensitive prefix
+  match, and `%` and `_` in it are literal characters. `Owner.pets` is populated in each row,
+  which the Pets column uses. The API answers `400` for `size` outside 1 to 100, a negative or
+  non-numeric `page`, a `sort` other than `id` or `lastName`, or a `direction` other than `asc`
+  or `desc`; the UI only ever sends valid values.
 - **Add owner**: body is `OwnerFields`: `firstName`, `lastName` (1–30 letters with optional
   space/hyphen/apostrophe separators, up to three words), `address` (≤255), `city` (≤80),
-  `telephone` (digits only, ≤20). The UI validates the same rules before sending; the server
-  stays authoritative.
+  `telephone` (exactly 10 digits, as the `Owner` entity requires). The UI validates the same
+  rules before sending; the server stays authoritative and answers `400` with the offending
+  field in `schemaValidationErrors` (it used to answer `500` for a telephone that was not 10
+  digits).
 
 - **Owner details / Edit owner**: `GET /owners/{ownerId}` returns the owner with each pet's `type`,
   `birthDate` and `visits`. A `404` (or a non-numeric id, which is never sent) shows "Owner not found".
@@ -72,16 +78,17 @@ Security is off by default.
   proposes are executed by the UI against the PetClinic endpoints above only after the
   user confirms (architecture rule).
 
-## Pending backend changes
+## Owner sorting and search (built in PC004)
 
-Approved but scheduled for a separate branch after the owner UI branch merges:
-
-- `GET /v2/owners` gains `sort` (`id` | `lastName`, default `id`) and `direction`
-  (`asc` | `desc`, default `asc`); last-name sorts break ties on first name, then id.
-- `lastName` matching becomes case-insensitive on every database for both
-  `GET /owners` and `GET /v2/owners`, with `%` and `_` escaped so they are not wildcards.
-
-Until then the UI does not send `sort`/`direction` and the Name column is not sortable.
+- `GET /v2/owners` takes `sort` (`id` | `lastName`, default `id`) and `direction` (`asc` | `desc`,
+  default `asc`). Sorting by last name ignores case and breaks ties on first name, then id; the
+  direction applies to every key, so descending is the exact reverse of ascending.
+- `lastName` matching is case-insensitive for both `GET /owners` and `GET /v2/owners`, with `%`
+  and `_` matched literally (escaped with `!` in the `LIKE`).
+- ⚠️ `LOWER()` stops the database using the plain `last_name` index. That is fine at clinic
+  scale; a functional index on `lower(last_name)` could be added for PostgreSQL if it matters.
+- ⚠️ Only H2 and HSQLDB are exercised by the tests. PostgreSQL and MySQL should behave the same
+  (portable JPQL) but are unverified.
 
 ## Known performance note
 

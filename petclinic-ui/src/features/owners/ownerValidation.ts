@@ -1,6 +1,7 @@
 import type { OwnerFields } from '../../api/types'
 
-// Mirrors the rules in spring-petclinic-rest openapi.yml (OwnerFields). The server remains authoritative.
+// Mirrors the rules in spring-petclinic-rest openapi.yml (OwnerFields), including the telephone: exactly 10
+// digits, as the Owner entity requires. The server remains authoritative.
 
 export type OwnerField = keyof OwnerFields
 export type OwnerFormErrors = Partial<Record<OwnerField, string>>
@@ -15,23 +16,26 @@ const LABELS: Record<OwnerField, string> = {
   telephone: 'Telephone',
 }
 
-const MAX_LENGTH: Record<OwnerField, number> = {
+// The telephone has no maximum length of its own: it must be exactly 10 digits.
+const MAX_LENGTH: Record<Exclude<OwnerField, 'telephone'>, number> = {
   firstName: 30,
   lastName: 30,
   address: 255,
   city: 80,
-  telephone: 20,
 }
 
 const NAME_PATTERN = /^\p{L}+([ '-]\p{L}+){0,2}$/u
 const LAST_NAME_PATTERN = /^\p{L}+([ '-]\p{L}+){0,2}\.?$/u
-const DIGITS = /^[0-9]*$/
+const TELEPHONE = /^[0-9]{10}$/
 
 export function validateOwnerField(field: OwnerField, rawValue: string): string | undefined {
   const value = rawValue.trim()
   const label = LABELS[field]
 
   if (value === '') return `${label} is required.`
+  if (field === 'telephone') {
+    return TELEPHONE.test(value) ? undefined : `${label} must be exactly 10 digits, with no spaces or dashes.`
+  }
   if (value.length > MAX_LENGTH[field]) return `${label} must be ${MAX_LENGTH[field]} characters or fewer.`
 
   if (field === 'firstName' && !NAME_PATTERN.test(value)) {
@@ -40,7 +44,6 @@ export function validateOwnerField(field: OwnerField, rawValue: string): string 
   if (field === 'lastName' && !LAST_NAME_PATTERN.test(value)) {
     return `${label} can only contain letters, with spaces, hyphens or apostrophes between words.`
   }
-  if (field === 'telephone' && !DIGITS.test(value)) return `${label} must contain digits only.`
   return undefined
 }
 

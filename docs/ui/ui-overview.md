@@ -123,11 +123,11 @@ the assistant launcher's and the delete dialog's.
 | Icon actions | Square 40px bordered icon controls (`iconAction`), a link or a button, for compact row and page actions: View (eye) in table rows; Edit (pencil) and Delete (trash, red outline) on Owner details. Each has an `aria-label` and a `title` tooltip. |
 | Forms & inputs | Labels above fields, 40px inputs, 1px border, 2px accent focus ring. Helper text under the field. Required-ness stated once ("All fields are required") instead of asterisks. One `TextField` component renders label, input, hint and error; extra props go straight to the `<input>`. |
 | Validation | Inline under the field in red with an icon and plain wording. Errors appear after the first submit attempt and then update live as the user fixes each field (leaving a field does not trigger an error). A failed submit shows a summary (focused, `role="alert"`) whose items link to the fields. Server errors show in an alert above the form and keep the entered values. The client rules mirror the API's; the server stays authoritative. |
-| Tables | Real `<table>` with a hidden caption and `th scope`, inside a bordered rounded card with the pagination footer. Tinted header row, hairline row dividers, 60px rows, hover tint, no zebra striping, no vertical rules. Each row has an initials avatar (decorative), the name as a real link, and a **View** icon link; the whole row is also clickable as a mouse convenience. Pets show as pills (first two, then "+N"). There is no delete in the list. |
+| Tables | Real `<table>` with a hidden caption and `th scope`, inside a bordered rounded card with the pagination footer. Tinted header row, hairline row dividers, 60px rows, hover tint, no zebra striping, no vertical rules. Each row has an initials avatar (decorative), the name as a real link, and a **View** icon link; the whole row is also clickable as a mouse convenience. Pets show as pills (first two, then "+N"). There is no delete in the list. The **Name** header is a sort button: it cycles A to Z, Z to A, then the default order, shows an arrow icon for the state, carries `aria-sort` on the `th` and a visually hidden hint of what it does next, and works at every width. Only Name sorts. |
 | Detail views | A bordered "Contact" panel (definition list; Address twice as wide as City and Telephone) and a "Pets" section of 240px cards (name and type tag side by side, birth date, visits). |
 | Confirmation dialog | `ConfirmDialog` on the native `<dialog>`: modal, Esc closes it, Cancel is focused first, focus returns to the opener. Used for Delete owner; it names what will be removed, stays open and shows the error if the action fails. |
 | Notices | A one-time confirmation (for example "Deleted owner …") is passed through navigation state and shown at the top of the next screen; it disappears as soon as the user searches or pages. |
-| Icons | About ten 16px inline-SVG icons in `components/Icon.tsx` (`currentColor`, 1.5px stroke). Used beside text; icon-only controls carry an `aria-label`. |
+| Icons | About thirteen 16px inline-SVG icons in `components/Icon.tsx` (`currentColor`, 1.5px stroke). Used beside text; icon-only controls carry an `aria-label`. |
 
 ### Standard list-screen states
 
@@ -213,14 +213,14 @@ exists.
   confirming user's credentials and the exact payload they approved, and be audited as AI-proposed
   and user-confirmed. ⚠️ Today there is no agent principal and `OWNER_ADMIN` covers reads and
   writes, so this needs its own ADR before the agent can propose writes (scheduled with the
-  backend work, after the last-name sort branch).
+  backend work, on its own branch and PR; see [project-status.md](../project-status.md)).
 
 ## Known gaps
 
-- **No sorting.** The API orders owners by id only. Last-name sorting and case-insensitive
-  search are an approved backend change scheduled for a separate branch after this one
-  merges. Until then the Name column is not sortable and search may be case-sensitive,
-  depending on the database (H2 and PostgreSQL are; MySQL and HSQLDB are not).
+- **Server validation messages are generic.** A `400` from the API shows "The request contains
+  invalid or missing parameters" above the form, because the UI does not yet read the field-level
+  messages in `schemaValidationErrors`. The form rules mirror the API's (including the 10-digit
+  telephone), so this is rarely reached.
 - **Add pet and Add visit** are not built yet, so Owner details shows pets and visits but
   cannot add them.
 - ⚠️ **Deleting an owner who has pets fails** because of a backend bug: `Pet.type` is mapped with

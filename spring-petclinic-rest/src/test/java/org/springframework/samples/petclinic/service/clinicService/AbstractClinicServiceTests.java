@@ -385,6 +385,123 @@ abstract class AbstractClinicServiceTests {
             .containsExactly("Betty");
     }
 
+    private static Sort ownersByLastName(Sort.Direction direction) {
+        return Sort.by(
+            new Sort.Order(direction, "lastName").ignoreCase(),
+            new Sort.Order(direction, "firstName").ignoreCase(),
+            new Sort.Order(direction, "id"));
+    }
+
+    private void saveOwner(String firstName, String lastName) {
+        Owner owner = new Owner();
+        owner.setFirstName(firstName);
+        owner.setLastName(lastName);
+        owner.setAddress("1 Test St.");
+        owner.setCity("Testville");
+        owner.setTelephone("5555555555");
+        this.ownerService.saveOwner(owner);
+    }
+
+    @Test
+    void shouldFindOwnersPageSortedByLastNameAscending() {
+        Page<Owner> owners = this.ownerService.findOwners(null, PageRequest.of(0, 10, ownersByLastName(Sort.Direction.ASC)));
+        assertThat(owners.getContent())
+            .extracting(Owner::getLastName)
+            .containsExactly("Black", "Coleman", "Davis", "Davis", "Escobito", "Estaban", "Franklin", "McTavish", "Rodriquez", "Schroeder");
+    }
+
+    @Test
+    void shouldFindOwnersPageSortedByLastNameDescendingAsTheExactReverse() {
+        Page<Owner> ascending = this.ownerService.findOwners(null, PageRequest.of(0, 10, ownersByLastName(Sort.Direction.ASC)));
+        Page<Owner> descending = this.ownerService.findOwners(null, PageRequest.of(0, 10, ownersByLastName(Sort.Direction.DESC)));
+        assertThat(descending.getContent())
+            .extracting(Owner::getId)
+            .containsExactlyElementsOf(ascending.getContent().stream().map(Owner::getId).toList().reversed());
+    }
+
+    @Test
+    @Transactional
+    void shouldSortOwnersByLastNameIgnoringCase() {
+        saveOwner("Abe", "aardvark");
+        Page<Owner> owners = this.ownerService.findOwners(null, PageRequest.of(0, 3, ownersByLastName(Sort.Direction.ASC)));
+        assertThat(owners.getContent())
+            .extracting(Owner::getLastName)
+            .containsExactly("aardvark", "Black", "Coleman");
+    }
+
+    @Test
+    @Transactional
+    void shouldBreakLastNameTiesOnFirstNameThenId() {
+        saveOwner("Zoe", "Tiebreak");
+        saveOwner("Abe", "Tiebreak");
+        saveOwner("Abe", "Tiebreak");
+        Page<Owner> owners = this.ownerService.findOwners("Tiebreak", PageRequest.of(0, 10, ownersByLastName(Sort.Direction.ASC)));
+        assertThat(owners.getContent()).extracting(Owner::getFirstName).containsExactly("Abe", "Abe", "Zoe");
+        assertThat(owners.getContent().get(0).getId()).isLessThan(owners.getContent().get(1).getId());
+    }
+
+    @Test
+    void shouldPageThroughLastNameSortWithoutRepeatingOrSkippingOwners() {
+        Sort sort = ownersByLastName(Sort.Direction.ASC);
+        List<String> seen = new java.util.ArrayList<>();
+        for (int pageNumber = 0; pageNumber < 4; pageNumber++) {
+            this.ownerService.findOwners(null, PageRequest.of(pageNumber, 3, sort))
+                .forEach(owner -> seen.add(owner.getFirstName() + " " + owner.getLastName()));
+        }
+        assertThat(seen).hasSize(10).doesNotHaveDuplicates();
+    }
+
+    @Test
+    void shouldFindOwnersPageByLastNameIgnoringCase() {
+        for (String search : List.of("davis", "DAVIS", "dAv", "Davis")) {
+            Page<Owner> owners = this.ownerService.findOwners(search, PageRequest.of(0, 10, Sort.by("id")));
+            assertThat(owners.getTotalElements()).as("search for %s", search).isEqualTo(2);
+            assertThat(owners.getContent()).extracting(Owner::getLastName).containsOnly("Davis");
+        }
+    }
+
+    @Test
+    void shouldFindOwnersByLastNameIgnoringCase() {
+        assertThat(this.ownerService.findOwnerByLastName("davis")).hasSize(2);
+        assertThat(this.ownerService.findOwnerByLastName("BLACK")).extracting(Owner::getFirstName).containsExactly("Jeff");
+        assertThat(this.ownerService.findOwnerByLastName("zzz")).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void shouldMatchPercentUnderscoreAndBangLiterallyInThePagedSearch() {
+        saveOwner("A", "Per%cent");
+        saveOwner("B", "Perxcent");
+        saveOwner("C", "Under_score");
+        saveOwner("D", "Underxscore");
+        saveOwner("E", "Bang!");
+        PageRequest firstPage = PageRequest.of(0, 10, Sort.by("id"));
+
+        assertThat(this.ownerService.findOwners("Per%", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Per%cent");
+        assertThat(this.ownerService.findOwners("Per", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Per%cent", "Perxcent");
+        assertThat(this.ownerService.findOwners("Under_", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Under_score");
+        assertThat(this.ownerService.findOwners("Bang!", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Bang!");
+        // A bare wildcard or escape character is just text, so it matches nothing here.
+        assertThat(this.ownerService.findOwners("%", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("_", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("!", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("D_vis", firstPage).getTotalElements()).isZero();
+    }
+
+    @Test
+    @Transactional
+    void shouldMatchPercentUnderscoreAndBangLiterallyInTheUnpagedSearch() {
+        saveOwner("A", "Per%cent");
+        saveOwner("B", "Perxcent");
+        saveOwner("C", "Under_score");
+        saveOwner("D", "Underxscore");
+
+        assertThat(this.ownerService.findOwnerByLastName("Per%")).extracting(Owner::getLastName).containsExactly("Per%cent");
+        assertThat(this.ownerService.findOwnerByLastName("Under_")).extracting(Owner::getLastName).containsExactly("Under_score");
+        assertThat(this.ownerService.findOwnerByLastName("%")).isEmpty();
+        assertThat(this.ownerService.findOwnerByLastName("D_vis")).isEmpty();
+    }
+
     @Test
     @Transactional
     void shouldDeleteOwner(){

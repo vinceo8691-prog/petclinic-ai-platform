@@ -64,10 +64,10 @@ the user searches or pages.
   *Vets* is added when that screen exists.
 - **Back navigation**: forms have a "← Owners" link and a Cancel button; Owner details links
   back to the search.
-- **Search state lives in the URL query string** (`/owners?lastName=Davis&page=1&size=20`):
-  search text, page and page size. Typing updates the URL after a short pause and resets to
-  page 1; search typing replaces the history entry rather than adding one, while paging adds
-  one. Returning from Owner details with the back button restores the list as it was.
+- **Search state lives in the URL query string** (`/owners?lastName=Davis&sort=lastName&direction=desc&page=1&size=20`):
+  search text, sort, page and page size. Typing updates the URL after a short pause and resets to
+  page 1; search typing replaces the history entry rather than adding one, while paging and
+  sorting add one (sorting also resets to page 1). Returning from Owner details with the back button restores the list as it was.
 - **Unknown owner/pet IDs** (API `404`) show an "Owner not found" message with a link back to the
   owner search (built for owners; pets follow with their screens).
 - **Unsaved changes**: leaving a form with edits shows no prompt in the first version. ⚠️

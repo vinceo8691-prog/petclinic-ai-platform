@@ -33,6 +33,9 @@ export function OwnersPage() {
   const lastName = params.get('lastName') ?? ''
   const page = positiveInt(params.get('page'), 0)
   const requestedSize = positiveInt(params.get('size'), DEFAULT_SIZE)
+  // Only the Name column sorts. No sort in the URL means the API's default id order.
+  const sortDirection =
+    params.get('sort') === 'lastName' ? (params.get('direction') === 'desc' ? 'desc' : 'asc') : undefined
   const size = PAGE_SIZES.includes(requestedSize) ? requestedSize : DEFAULT_SIZE
 
   // While the user is typing, the field shows `draft`; the URL (and the query) update after a short pause.
@@ -54,6 +57,13 @@ export function OwnersPage() {
     )
   }
 
+  /** Name header: A to Z, then Z to A, then back to the default order. Any change returns to page 1. */
+  function toggleSort() {
+    if (sortDirection === undefined) update({ sort: 'lastName', direction: 'asc', page: undefined })
+    else if (sortDirection === 'asc') update({ direction: 'desc', page: undefined })
+    else update({ sort: undefined, direction: undefined, page: undefined })
+  }
+
   function commitSearch(value: string) {
     clearTimeout(timer.current)
     update({ lastName: value.trim(), page: undefined }, true)
@@ -66,7 +76,13 @@ export function OwnersPage() {
     timer.current = setTimeout(() => commitSearch(value), SEARCH_DEBOUNCE_MS)
   }
 
-  const { data, error, isPending, isPlaceholderData, refetch } = useOwners({ lastName, page, size })
+  const { data, error, isPending, isPlaceholderData, refetch } = useOwners({
+    lastName,
+    page,
+    size,
+    sort: sortDirection ? 'lastName' : undefined,
+    direction: sortDirection,
+  })
 
   const searching = lastName !== ''
   const subtitle = data
@@ -112,7 +128,7 @@ export function OwnersPage() {
   } else if (data) {
     body = (
       <div className={`${styles.tableWrap} ${isPlaceholderData ? styles.dim : ''}`} aria-busy={isPlaceholderData}>
-        <OwnersTable owners={data.content} />
+        <OwnersTable owners={data.content} sortDirection={sortDirection} onToggleSort={toggleSort} />
       </div>
     )
   }

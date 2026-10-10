@@ -39,18 +39,26 @@ public interface OwnerRepository extends Repository<Owner, Integer> {
 
     /**
      * Retrieve <code>Owner</code>s from the data store by last name, returning all owners whose last name <i>starts</i>
-     * with the given name.
+     * with the given name, ignoring case. The value is used as a LIKE pattern prefix with <code>!</code> as the
+     * escape character, so callers must escape <code>!</code>, <code>%</code> and <code>_</code> in user input
+     * (see <code>OwnerService</code>).
      *
-     * @param lastName Value to search for
+     * @param lastName Value to search for, already escaped
      * @return a <code>Collection</code> of matching <code>Owner</code>s (or an empty <code>Collection</code> if none
      * found)
      */
-    @Query("SELECT DISTINCT owner FROM Owner owner left join fetch owner.pets WHERE owner.lastName LIKE :lastName%")
+    @Query("SELECT DISTINCT owner FROM Owner owner left join fetch owner.pets "
+        + "WHERE LOWER(owner.lastName) LIKE LOWER(CONCAT(:lastName, '%')) ESCAPE '!'")
     Collection<Owner> findByLastName(@Param("lastName") String lastName);
 
+    /**
+     * Case-insensitive prefix search by last name, paged. As in the unpaged variant, <code>lastName</code> is a
+     * LIKE pattern prefix that uses <code>!</code> as its escape character, so callers must escape <code>!</code>,
+     * <code>%</code> and <code>_</code> in user input (see <code>OwnerService</code>).
+     */
     @Query(
-        value = "SELECT owner FROM Owner owner WHERE owner.lastName LIKE CONCAT(:lastName, '%')",
-        countQuery = "SELECT COUNT(owner) FROM Owner owner WHERE owner.lastName LIKE CONCAT(:lastName, '%')")
+        value = "SELECT owner FROM Owner owner WHERE LOWER(owner.lastName) LIKE LOWER(CONCAT(:lastName, '%')) ESCAPE '!'",
+        countQuery = "SELECT COUNT(owner) FROM Owner owner WHERE LOWER(owner.lastName) LIKE LOWER(CONCAT(:lastName, '%')) ESCAPE '!'")
     Page<Owner> findByLastName(@Param("lastName") String lastName, Pageable pageable);
 
     /**
