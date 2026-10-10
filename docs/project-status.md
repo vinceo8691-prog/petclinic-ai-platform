@@ -4,7 +4,7 @@
 start of each week and replace the sections below; older weeks stay in git history.
 
 > ⚠️ **Assumptions to confirm** are marked with ⚠️. The week boundaries (Monday to Sunday) and
-> the PR numbers after PC002 are my assumptions, not decisions.
+> the PR numbers after PC003 are my assumptions, not decisions.
 
 ## Where we are
 
@@ -50,14 +50,19 @@ start of each week and replace the sections below; older weeks stay in git histo
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
 1. **PC002, owner details (PR #4).** Review and approve, then merge.
-2. **PC003 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
+2. **PC003 ⚠️, CI and repo hygiene** (decided 2026-10-09, moved ahead of the sort work so its
+   tests run in CI). Move the Dependabot config and the build workflows to the repo root and
+   adjust them for the `spring-petclinic-rest` subfolder, add a UI workflow (`npm ci`, lint, test,
+   build), keep the Docker Hub push out, and set up a GitHub ruleset on `main` (pull request and
+   passing checks required, approvals 0). CI runs on every PR and again on pushes to `main`.
+3. **PC004 ⚠️, last-name sort and case-insensitive search.** Backend first: `sort` (`id` or
    `lastName`) and `direction` on `GET /v2/owners`, case-insensitive prefix search on both v1 and
    v2 with `%` and `_` escaped, tests including the H2 profile, docs. Then the UI Name column
    sort. Full design is in the saved plan. Also draft the **agent-authorization ADR** during
    this backend work (the backend enforces AI-write permission; the agent's credentials are
    read-only).
-3. **PC004 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
-4. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
+4. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
+5. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
    the assistant once `petclinic-ai-agent` has endpoints.
 
 ## Blockers and risks
@@ -65,7 +70,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - **Deleting an owner who has pets fails** (backend bug, reproduced 2026-10-08). `Pet.type` is
   mapped `CascadeType.ALL`, so the delete tries to remove a shared pet type and the database
   rejects it. The API answers 404 "data constraint violation" and no data is lost. Owners with
-  no pets delete fine. Blocked until PC004; the UI shows the server's message in the dialog.
+  no pets delete fine. Blocked until PC005; the UI shows the server's message in the dialog.
 - **No login flow is designed.** Security is off by default and the UI sends no credentials.
   This blocks any non-local deployment and needs its own ADR.
 - **No JDK on the shell `PATH`.** Backend builds from the terminal need `JAVA_HOME` set (a JDK
@@ -120,7 +125,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 Items with no date yet. **Copy this section forward each week; do not replace it.** If it grows
 past about ten items, move it to GitHub Issues and link them here.
 
-- **Move the Dependabot config and workflows to the repo root.** They sit in
+- **Move the Dependabot config and workflows to the repo root.** (Scheduled as PC003.) They sit in
   `spring-petclinic-rest/.github/`, but GitHub only reads the root `.github/`, so version-update
   PRs and the build workflows (Maven build, Docker build, Newman) probably no longer run. The
   workflows need their paths adjusted for the `spring-petclinic-rest` subfolder, so try them on a
