@@ -1,0 +1,40 @@
+# Version-update PRs. Security updates are switched on separately in the repository settings.
+# GitHub only reads this file from the repository root, so each ecosystem names its folder.
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/spring-petclinic-rest"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      maven-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "maven"
+    directory: "/petclinic-ai-agent"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      maven-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/petclinic-ui"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"

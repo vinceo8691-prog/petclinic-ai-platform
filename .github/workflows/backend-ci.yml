@@ -1,0 +1,41 @@
+name: Backend CI
+
+# Runs on every pull request and again after a merge to main. There is deliberately no path filter:
+# a required check that is skipped by a path filter stays "pending" and blocks the merge.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the older run; runs on main always finish.
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend-build:
+    name: Backend build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: spring-petclinic-rest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: spring-petclinic-rest/pom.xml
+      - name: Build and test
+        run: ./mvnw -B verify
+        # SonarCloud analysis was removed: it was hardcoded to the upstream project's organization
+        # and project key. To add it back, create your own SonarCloud project, add a SONAR_TOKEN
+        # secret and run org.sonarsource.scanner.maven:sonar-maven-plugin:sonar with your own
+        # -Dsonar.projectKey and -Dsonar.organization.
