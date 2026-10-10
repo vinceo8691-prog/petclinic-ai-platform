@@ -154,14 +154,17 @@ past about ten items, move it to GitHub Issues and link them here.
   deploys to AWS). Delete it or replace it when the image registry is decided.
 - **`mvnw` was not executable in git** (mode 100644), which would have failed `./mvnw` on the Linux
   runners. Fixed in PC003 (now 100755).
-- **Triage the first Dependabot PRs (#6 to #12, opened 2026-10-10).** Checks on 2026-10-10: the
-  action bumps #6 (`upload-artifact`), #7 (`checkout`) and #8 (`setup-node`), the UI group #9
-  and the Maven group #11 (five updates, including springdoc 3.1.1 and the refactor-first plugin
-  0.10.0 that the earlier closed PRs proposed) are all green. #10 (`@vitejs/plugin-react` 6) and
-  #12 (`typescript` 7) fail at `npm ci` with a dependency conflict (plugin-react 6 needs a newer
-  Vite than our 6.4.3; typescript-eslint 8.71.0 does not support TypeScript 7), so they are
-  closed or ignored until a deliberate upgrade. Merge or close each as you decide; merged action
-  PRs may need `@dependabot rebase` because they edit the same workflow files.
+- **First Dependabot PRs triaged (#6 to #12, 2026-10-10).** Merged: the GitHub Actions bumps #6
+  (`upload-artifact` 7), #7 (`checkout` 7) and #8 (`setup-node` 7), and #9 (`typescript-eslint`
+  8.71.1); all checks were green. Closed and ignored: #10 (`@vitejs/plugin-react` 6) and #12
+  (`typescript` 7), which fail at `npm ci` with dependency conflicts (plugin-react 6 needs a newer
+  Vite than our 6.4.3; typescript-eslint 8.71.0 does not support TypeScript 7), with
+  `@dependabot ignore this major version`. Closed without merging: #11 (backend Maven group of
+  five: springdoc 3.1.1, `jackson-databind-nullable` 0.2.12, refactor-first plugin 0.10.0,
+  `openapi-generator` plugin 7.26.0, Maven 3.10.0). Checks were green, but they are routine
+  updates, not security fixes, so the backend stays on springdoc 3.1.0, refactor-first 0.9.0 and
+  the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
+  Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
 - **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
   timing: a small PR before Add pet, when the type count grows (the CI freshness check is now
   possible, since PC003 is merged). Plan: add
