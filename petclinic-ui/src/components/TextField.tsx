@@ -1,24 +1,17 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { Icon } from './Icon'
 import styles from './ui.module.css'
 
-interface InputProps {
-  id: string
-  className: string
-  'aria-invalid': boolean
-  'aria-describedby': string | undefined
-}
-
-interface Props {
+interface Props extends Omit<ComponentProps<'input'>, 'className'> {
+  /** Required: it links the label to the input. */
   id: string
   label: string
   hint?: string
   error?: string
-  children: (inputProps: InputProps) => ReactNode
 }
 
-/** Label above the control, optional hint, inline error. The control comes from a render prop so it can be any input type. */
-export function FormField({ id, label, hint, error, children }: Props) {
+/** Label above the input, optional hint, inline error. Any other prop goes to the <input>. */
+export function TextField({ id, label, hint, error, ...inputProps }: Props) {
   const hintId = `${id}-hint`
   const errorId = `${id}-error`
   const describedBy = [error ? errorId : undefined, hint ? hintId : undefined].filter(Boolean).join(' ') || undefined
@@ -28,7 +21,13 @@ export function FormField({ id, label, hint, error, children }: Props) {
       <label htmlFor={id} className={styles.label}>
         {label}
       </label>
-      {children({ id, className: styles.input, 'aria-invalid': Boolean(error), 'aria-describedby': describedBy })}
+      <input
+        {...inputProps}
+        id={id}
+        className={styles.input}
+        aria-invalid={Boolean(error)}
+        aria-describedby={describedBy}
+      />
       {hint && (
         <p id={hintId} className={styles.hint}>
           {hint}

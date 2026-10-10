@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { describeError, isAccessError } from '../../api/client'
 import { Button, buttonClassName } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
@@ -11,7 +11,7 @@ import { SearchField } from '../../components/SearchField'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
 import { OwnersTable, OwnersTableSkeleton } from './OwnersTable'
 import { useOwners } from './useOwners'
-import ui from '../../components/ui.module.css'
+import uiStyles from '../../components/ui.module.css'
 import styles from './Owners.module.css'
 
 const DEFAULT_SIZE = 20
@@ -24,6 +24,9 @@ function positiveInt(value: string | null, fallback: number): number {
 
 export function OwnersPage() {
   useDocumentTitle('Owners')
+
+  // One-time message from another screen, e.g. after deleting an owner. Changing the search clears it.
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
 
   // Search text, page and page size live in the URL so the list survives reloads and back-navigation.
   const [params, setParams] = useSearchParams()
@@ -117,6 +120,8 @@ export function OwnersPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Clinic administration"
+        icon="users"
         title="Owners"
         subtitle={subtitle}
         actions={
@@ -127,26 +132,45 @@ export function OwnersPage() {
         }
       />
 
+      {notice && (
+        <p role="status" className={uiStyles.notice}>
+          {notice}
+        </p>
+      )}
+
       {error && (
         <ErrorAlert
-          title={isAccessError(error) ? "You don't have access to owners" : 'Could not load owners'}
-          message={isAccessError(error) ? undefined : describeError(error)}
+          title={
+            isAccessError(error)
+              ? "You don't have access to owners"
+              : data
+                ? 'Could not refresh owners'
+                : 'Could not load owners'
+          }
+          message={
+            isAccessError(error)
+              ? undefined
+              : data
+                ? `Showing the last results that loaded. ${describeError(error)}`
+                : describeError(error)
+          }
           onRetry={isAccessError(error) ? undefined : () => refetch()}
         />
       )}
 
-      <div className={ui.panel}>
-        <div className={styles.toolbar}>
-          <SearchField
-            id="owner-search"
-            label="Search by last name"
-            hint="Matches last names that start with what you type."
-            value={draft ?? lastName}
-            onChange={onSearchChange}
-            onSubmit={() => commitSearch(draft ?? lastName)}
-            onClear={() => commitSearch('')}
-          />
-        </div>
+      <div className={styles.toolbar}>
+        <SearchField
+          id="owner-search"
+          label="Search by last name"
+          hint="Matches last names that start with what you type."
+          value={draft ?? lastName}
+          onChange={onSearchChange}
+          onSubmit={() => commitSearch(draft ?? lastName)}
+          onClear={() => commitSearch('')}
+        />
+      </div>
+
+      <div className={styles.tableCard}>
         {body}
         {data && data.totalElements > 0 && (
           <Pagination
@@ -155,8 +179,10 @@ export function OwnersPage() {
             totalElements={data.totalElements}
             totalPages={data.totalPages}
             itemLabel="owners"
-            onPageChange={(p) => update({ page: p === 0 ? undefined : String(p) })}
-            onSizeChange={(s) => update({ size: s === DEFAULT_SIZE ? undefined : String(s), page: undefined })}
+            onPageChange={(pageNumber) => update({ page: pageNumber === 0 ? undefined : String(pageNumber) })}
+            onSizeChange={(newSize) =>
+              update({ size: newSize === DEFAULT_SIZE ? undefined : String(newSize), page: undefined })
+            }
           />
         )}
       </div>

@@ -1,13 +1,5 @@
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-bottom: var(--space-3);
-}
-
 .formPanel {
   max-width: var(--form-max);
-  padding: var(--space-6);
 }
 
 .form {

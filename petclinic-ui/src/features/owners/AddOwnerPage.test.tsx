@@ -21,16 +21,23 @@ describe('AddOwnerPage', () => {
     expect(document.title).toBe('Add owner – PetClinic')
   })
 
-  it('shows a field error after the field is left', async () => {
+  it('does not nag about a field just because it was left, only after a submit attempt', async () => {
     renderApp('/owners/new')
 
     await userEvent.type(screen.getByLabelText('First name'), 'G3orge')
     await userEvent.tab()
+    expect(screen.getByLabelText('First name')).toHaveAttribute('aria-invalid', 'false')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save owner' }))
 
     const input = screen.getByLabelText('First name')
     expect(input).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText(/First name can only contain letters/)).toBeInTheDocument()
     expect(input).toHaveAccessibleDescription(/First name can only contain letters/)
+
+    // After a failed submit the error clears as soon as the value is fixed.
+    await userEvent.clear(input)
+    await userEvent.type(input, 'George')
+    expect(input).toHaveAttribute('aria-invalid', 'false')
   })
 
   it('blocks submit, summarizes the errors and focuses the summary', async () => {
@@ -57,7 +64,7 @@ describe('AddOwnerPage', () => {
     await fillValid()
     await userEvent.click(screen.getByRole('button', { name: 'Save owner' }))
 
-    expect(await screen.findByText('Owner #42')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Maria Lopez' })).toBeInTheDocument()
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('/petclinic/api/owners')
     expect(JSON.parse(String(init?.body))).toEqual({

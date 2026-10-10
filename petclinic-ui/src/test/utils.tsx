@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AppRoutes } from '../AppRoutes'
-import type { Owner, OwnerPage } from '../api/types'
+import type { Owner, OwnerPage, Pet } from '../api/types'
 
 export function renderApp(route = '/owners') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -19,6 +19,15 @@ export function jsonResponse(body: unknown, status = 200): Promise<Response> {
   return Promise.resolve(new Response(JSON.stringify(body), { status }))
 }
 
+export const makePet = (id: number, name: string, over: Partial<Pet> = {}): Pet => ({
+  id,
+  name,
+  birthDate: '2020-09-07',
+  type: { id: 1, name: 'cat' },
+  visits: [],
+  ...over,
+})
+
 export const makeOwner = (id: number, over: Partial<Owner> = {}): Owner => ({
   id,
   firstName: 'George',
@@ -26,11 +35,7 @@ export const makeOwner = (id: number, over: Partial<Owner> = {}): Owner => ({
   address: '110 W. Liberty St.',
   city: 'Madison',
   telephone: '6085551023',
-  pets: [
-    { id: 1, name: 'Leo' },
-    { id: 2, name: 'Basil' },
-    { id: 3, name: 'Rosy' },
-  ],
+  pets: [makePet(1, 'Leo'), makePet(2, 'Basil'), makePet(3, 'Rosy')],
   ...over,
 })
 

@@ -1,5 +1,5 @@
 import { ApiError } from './client'
-import { addOwner, listOwners } from './owners'
+import { addOwner, deleteOwner, getOwner, listOwners, updateOwner } from './owners'
 import { jsonResponse, makeOwner, makePage } from '../test/utils'
 
 describe('listOwners', () => {
@@ -37,5 +37,47 @@ describe('addOwner', () => {
     expect(JSON.parse(String(init?.body))).toEqual(fields)
     expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json')
     expect(owner.id).toBe(7)
+  })
+})
+
+describe('getOwner', () => {
+  it('GETs the owner by id', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => jsonResponse(makeOwner(7)))
+    vi.stubGlobal('fetch', fetchMock)
+    const owner = await getOwner(7)
+    expect(fetchMock.mock.calls[0][0]).toBe('/petclinic/api/owners/7')
+    expect(owner.id).toBe(7)
+  })
+})
+
+describe('updateOwner', () => {
+  it('PUTs the fields as JSON and copes with the empty 204 response', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve(new Response(null, { status: 204 })))
+    vi.stubGlobal('fetch', fetchMock)
+    const fields = { firstName: 'A', lastName: 'B', address: 'C', city: 'D', telephone: '1' }
+
+    await expect(updateOwner(7, fields)).resolves.toBeUndefined()
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/petclinic/api/owners/7')
+    expect(init?.method).toBe('PUT')
+    expect(JSON.parse(String(init?.body))).toEqual(fields)
+  })
+})
+
+describe('deleteOwner', () => {
+  it('DELETEs the owner and copes with the empty 204 response', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve(new Response(null, { status: 204 })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(deleteOwner(7)).resolves.toBeUndefined()
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/petclinic/api/owners/7')
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('DELETE')
+  })
+
+  it('surfaces a 404 as an ApiError', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(() => jsonResponse({ detail: 'gone' }, 404)))
+    await expect(deleteOwner(7)).rejects.toMatchObject({ status: 404, message: 'gone' })
   })
 })

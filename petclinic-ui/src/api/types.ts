@@ -1,8 +1,24 @@
 // Hand-written from spring-petclinic-rest openapi.yml; replace with generated types later (ADR-0003).
 
+export interface PetType {
+  id: number
+  name: string
+}
+
+export interface Visit {
+  id: number
+  /** ISO date, e.g. 2026-03-14. */
+  date: string
+  description: string
+}
+
 export interface Pet {
   id: number
   name: string
+  /** ISO date, e.g. 2020-09-07. */
+  birthDate: string
+  type: PetType
+  visits: Visit[]
 }
 
 export interface OwnerFields {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AssistantPanel } from './AssistantPanel'
+import { Backdrop, PageScene } from './Backdrop'
 import { DogMark } from './DogMark'
 import { Icon } from './Icon'
 import styles from './AppShell.module.css'
@@ -31,14 +32,13 @@ export function AppShell() {
   const launcher = useRef<HTMLButtonElement>(null)
   const restoreLauncherFocus = useRef(false)
   const main = useRef<HTMLElement>(null)
-  const firstRender = useRef(true)
+  const previousPathname = useRef(pathname)
 
   // After navigating to a new screen, move focus to the content so keyboard and screen reader users start there.
+  // Comparing paths (not "is this the first run") keeps this correct when StrictMode runs effects twice in dev.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false
-      return
-    }
+    if (previousPathname.current === pathname) return
+    previousPathname.current = pathname
     main.current?.focus()
   }, [pathname])
 
@@ -79,11 +79,13 @@ export function AppShell() {
           </NavLink>
         </nav>
       </header>
+      <Backdrop />
       <div className={styles.body}>
         <main id="main" ref={main} tabIndex={-1} className={styles.main}>
-          <div className={styles.container}>
+          <div className={`${styles.card} ${matchPath('/owners', pathname) ? '' : styles.cardNarrow}`}>
             <Outlet />
           </div>
+          <PageScene />
         </main>
         {assistantOpen && <AssistantPanel focusOnMount={focusAssistant} onClose={closeAssistant} />}
       </div>

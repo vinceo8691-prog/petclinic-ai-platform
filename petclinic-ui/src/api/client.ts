@@ -17,7 +17,7 @@ export class ApiError extends Error {
 type Params = Record<string, string | number | undefined>
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   params?: Params
   body?: unknown
   signal?: AbortSignal
@@ -57,6 +57,8 @@ export async function request<T>(
       problem,
     )
   }
+  // 204 No Content (PUT, DELETE) has no body to parse.
+  if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
 
@@ -70,4 +72,18 @@ export function describeError(error: unknown): string {
 
 export function isAccessError(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 401 || error.status === 403)
+}
+
+const MAX_RETRIES = 3
+
+/**
+ * TanStack Query retry rule: retry network failures and server errors up to three times, but never
+ * a client error (404, 403, 400, ...), which a retry cannot fix. 408 and 429 are the exceptions.
+ */
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (failureCount >= MAX_RETRIES) return false
+  if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+    return error.status === 408 || error.status === 429
+  }
+  return true
 }

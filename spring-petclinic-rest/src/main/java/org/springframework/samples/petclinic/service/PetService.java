@@ -55,7 +55,7 @@ public class PetService {
     }
 
     // Takes the already-loaded Owner rather than an id so PetService doesn't need
-    // a dependency on OwnerService (see ADR-0006) -- owner.addPet wires both sides
+    // a dependency on OwnerService (see docs/architecture/pet-owner-relationship-wiring.md) -- owner.addPet wires both sides
     // of the relationship, which hand-setting pet.setOwner(owner) in the caller used to skip.
     @Transactional
     public void addPetToOwner(Owner owner, Pet pet) throws DataAccessException {

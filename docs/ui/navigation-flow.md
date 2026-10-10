@@ -27,17 +27,29 @@ Owner search ──[Add owner]──▶ Add owner ──(save)──▶ Owner de
 owners yet" empty state). Saving opens the new owner's details page; Cancel and the back
 link return to the list.
 
+## Edit and delete owner (built)
+
+```
+Owner details ──[Edit owner]──▶ Edit owner ──(save / Cancel / back link)──▶ Owner details
+      └──[Delete owner]──▶ confirmation dialog ──(confirm)──▶ Owner search + "Deleted owner …" message
+                                  └──(Cancel / Esc)──▶ stays on Owner details, focus back on Delete owner
+```
+
+Edit owner prefills the Add owner form; saving returns to Owner details showing the new values.
+The deletion message comes from the navigation state, so it shows once and clears as soon as
+the user searches or pages.
+
 ## Full map
 
 ```
                        ┌──────────────▶ Add owner ──(save)──▶ Owner details
                        │                  /owners/new
  Owner search ─────────┤
-   /owners             └──(select)──▶ Owner details ─┬──▶ Edit owner ⚠️ ──(save/cancel)──▶ Owner details
+   /owners             └──(select)──▶ Owner details ─┬──▶ Edit owner ──(save/cancel)──▶ Owner details
                                        /owners/:id   ├──▶ Add pet ──────(save/cancel)────▶ Owner details
                                                      ├──▶ Edit pet ⚠️ ──(save/cancel)────▶ Owner details
                                                      ├──▶ Add visit ⚠️ ─(save/cancel)────▶ Owner details
-                                                     └──▶ More actions ▸ Delete owner… ──(confirm)──▶ Owner search
+                                                     └──▶ Delete owner…  ──(confirm)──▶ Owner search
 
  Vets list ⚠️ (/vets) — reached from top navigation only; no outgoing links.
 ```
@@ -56,8 +68,8 @@ link return to the list.
   search text, page and page size. Typing updates the URL after a short pause and resets to
   page 1; search typing replaces the history entry rather than adding one, while paging adds
   one. Returning from Owner details with the back button restores the list as it was.
-- **Unknown owner/pet IDs** (API `404`) will show a "not found" message with a link back to
-  the owner search (to be built with Owner details).
+- **Unknown owner/pet IDs** (API `404`) show an "Owner not found" message with a link back to the
+  owner search (built for owners; pets follow with their screens).
 - **Unsaved changes**: leaving a form with edits shows no prompt in the first version. ⚠️
 - **Focus on navigation**: after moving to a new screen, focus moves to the main content and
   the document title updates, so keyboard and screen reader users start in the right place.

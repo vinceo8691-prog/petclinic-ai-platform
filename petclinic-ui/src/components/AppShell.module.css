@@ -1,4 +1,5 @@
 .shell {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -23,7 +24,7 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-text);
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   text-decoration: none;
 }
@@ -31,27 +32,32 @@
   color: var(--color-text);
 }
 
+/* Text links; the current page gets an underline just beneath the label. */
 .nav {
   display: flex;
-  gap: var(--space-1);
-  height: 100%;
+  gap: var(--space-6);
+  margin-left: var(--space-6);
 }
 .navLink {
   display: flex;
   align-items: center;
-  padding: 0 var(--space-3);
-  margin-bottom: -1px;
-  border-bottom: 2px solid transparent;
+  /* The transparent border reserves the underline's space so the label does not shift. */
+  padding: var(--space-1) 0;
+  border-bottom: 3px solid transparent;
   color: var(--color-muted);
+  font-size: 18px;
   font-weight: 500;
   text-decoration: none;
 }
 .navLink:hover {
   color: var(--color-text);
+  border-bottom-color: var(--color-border-strong);
 }
-.navLinkActive {
-  color: var(--color-text);
+.navLinkActive,
+.navLinkActive:hover {
   border-bottom-color: var(--color-accent);
+  color: var(--color-accent-hover);
+  font-weight: 600;
 }
 
 /* ---------- Assistant launcher: floating button, bottom right ---------- */
@@ -84,24 +90,39 @@
 
 /* ---------- Body: page + docked assistant ---------- */
 .body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   min-width: 0;
 }
 
 .main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  /* Extra bottom room so the floating launcher never covers the end of the page. */
-  padding: var(--space-6) var(--space-6) calc(var(--space-12) + var(--space-6));
+  padding: var(--space-6) var(--space-6) 0;
 }
 .main:focus {
   outline: none;
 }
-.container {
+
+/* Every screen sits in one large rounded white card floating over the page art. */
+.card {
+  width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Detail and form pages are one narrow column, so their card hugs the content (form width + padding). */
+.cardNarrow {
+  max-width: calc(var(--form-max) + 2 * var(--space-8));
 }
 
 @media (max-width: 639px) {
@@ -110,7 +131,12 @@
     gap: var(--space-3);
   }
   .main {
+    /* Extra bottom room so the floating launcher never covers the end of the page. */
     padding: var(--space-4) var(--space-4) calc(var(--space-12) + var(--space-4));
+  }
+  .card {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
   }
   .launcher {
     right: var(--space-4);
@@ -123,6 +149,7 @@
   flex: none;
   width: var(--assistant-w);
   position: sticky;
+  align-self: flex-start;
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
   display: flex;

@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import type { Owner } from '../../api/types'
-import { formatPhone, summarizePets } from '../../lib/format'
+import { Icon } from '../../components/Icon'
+import { formatPhone, initials, splitPets, summarizePets } from '../../lib/format'
+import ui from '../../components/ui.module.css'
 import styles from './Owners.module.css'
 
 function Headers() {
@@ -11,6 +13,7 @@ function Headers() {
       <th scope="col" className={styles.colAddress}>Address</th>
       <th scope="col" className={styles.colCity}>City</th>
       <th scope="col" className={styles.colPets}>Pets</th>
+      <th scope="col" className={styles.colActions}>Actions</th>
     </tr>
   )
 }
@@ -25,35 +28,62 @@ export function OwnersTable({ owners }: { owners: Owner[] }) {
         <Headers />
       </thead>
       <tbody>
-        {owners.map((o) => {
-          const pets = summarizePets(o.pets)
-          const phone = formatPhone(o.telephone)
+        {owners.map((owner) => {
+          const { names, hiddenCount } = splitPets(owner.pets)
+          const phone = formatPhone(owner.telephone)
+          const fullName = `${owner.lastName}, ${owner.firstName}`
+          const detailsPath = `/owners/${owner.id}`
           return (
             <tr
-              key={o.id}
+              key={owner.id}
               className={styles.row}
-              // Mouse convenience only; the name link is the accessible way in.
-              onClick={(e) => {
-                if (!(e.target as HTMLElement).closest('a')) navigate(`/owners/${o.id}`)
+              // Mouse convenience only; the name link and View button are the accessible ways in.
+              onClick={(event) => {
+                if (!(event.target as HTMLElement).closest('a')) navigate(detailsPath)
               }}
             >
               <td>
-                <Link to={`/owners/${o.id}`} className={styles.name}>
-                  {o.lastName}, {o.firstName}
-                </Link>
-                <span className={styles.metaAddress}>{o.address}</span>
-                <span className={styles.metaAddressCity}>
-                  {o.address}, {o.city}
-                </span>
-                <span className={styles.metaContact}>
-                  {phone}
-                  {pets && ` · ${pets}`}
-                </span>
+                <div className={styles.nameCell}>
+                  <span className={styles.avatar} aria-hidden="true">
+                    {initials(owner.firstName, owner.lastName)}
+                  </span>
+                  <div>
+                    <Link to={detailsPath} className={styles.name}>
+                      {fullName}
+                    </Link>
+                    <span className={styles.metaAddress}>{owner.address}</span>
+                    <span className={styles.metaAddressCity}>
+                      {owner.address}, {owner.city}
+                    </span>
+                    <span className={styles.metaContact}>
+                      {phone}
+                      {owner.pets.length > 0 && ` · ${summarizePets(owner.pets)}`}
+                    </span>
+                  </div>
+                </div>
               </td>
               <td className={`${styles.colTelephone} ${styles.nowrap}`}>{phone}</td>
-              <td className={styles.colAddress}>{o.address}</td>
-              <td className={styles.colCity}>{o.city}</td>
-              <td className={styles.colPets}>{pets || <span className={styles.muted}>None</span>}</td>
+              <td className={styles.colAddress}>{owner.address}</td>
+              <td className={styles.colCity}>{owner.city}</td>
+              <td className={styles.colPets}>
+                {names.length > 0 ? (
+                  <div className={styles.pills}>
+                    {names.map((petName) => (
+                      <span key={petName} className={styles.pill}>
+                        {petName}
+                      </span>
+                    ))}
+                    {hiddenCount > 0 && <span className={`${styles.pill} ${styles.pillMore}`}>+{hiddenCount}</span>}
+                  </div>
+                ) : (
+                  <span className={styles.muted}>None</span>
+                )}
+              </td>
+              <td className={styles.colActions}>
+                <Link to={detailsPath} className={ui.iconAction} aria-label={`View ${fullName}`}>
+                  <Icon name="eye" />
+                </Link>
+              </td>
             </tr>
           )
         })}
@@ -74,10 +104,13 @@ export function OwnersTableSkeleton() {
           <Headers />
         </thead>
         <tbody>
-          {Array.from({ length: SKELETON_ROWS }, (_, i) => (
-            <tr key={i}>
+          {Array.from({ length: SKELETON_ROWS }, (_, index) => (
+            <tr key={index}>
               <td>
-                <span className={styles.bar} style={{ width: BAR_WIDTHS[0] }} />
+                <div className={styles.nameCell}>
+                  <span className={styles.avatarBar} />
+                  <span className={styles.bar} style={{ width: BAR_WIDTHS[0] }} />
+                </div>
               </td>
               <td className={styles.colTelephone}>
                 <span className={styles.bar} style={{ width: BAR_WIDTHS[1] }} />
@@ -90,6 +123,9 @@ export function OwnersTableSkeleton() {
               </td>
               <td className={styles.colPets}>
                 <span className={styles.bar} style={{ width: BAR_WIDTHS[4] }} />
+              </td>
+              <td className={styles.colActions}>
+                <span className={styles.bar} style={{ width: 36 }} />
               </td>
             </tr>
           ))}

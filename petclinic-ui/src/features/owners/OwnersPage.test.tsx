@@ -8,6 +8,10 @@ function mockFetch(handler: (url: string) => Promise<Response>) {
   return mock
 }
 
+// The list, plus the details of owner 1 for tests that open an owner.
+const ownersAndOwnerOne = (url: string) =>
+  url.endsWith('/owners/1') ? jsonResponse(makeOwner(1)) : jsonResponse(makePage())
+
 describe('OwnersPage', () => {
   it('shows a loading state, then the owners', async () => {
     let resolve!: (r: Response) => void
@@ -21,7 +25,7 @@ describe('OwnersPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('renders owner rows with formatted phone, pet summary and a details link', async () => {
+  it('renders owner rows with formatted phone, pet pills and a details link', async () => {
     mockFetch(() => jsonResponse(makePage()))
     renderApp()
 
@@ -29,10 +33,42 @@ describe('OwnersPage', () => {
     expect(link).toHaveAttribute('href', '/owners/1')
     const row = link.closest('tr')!
     expect(within(row).getByText('(608) 555-1023')).toBeInTheDocument()
-    expect(within(row).getByText('Leo, Basil +1')).toBeInTheDocument()
+    expect(within(row).getByText('Leo')).toBeInTheDocument()
+    expect(within(row).getByText('Basil')).toBeInTheDocument()
+    expect(within(row).getByText('+1')).toBeInTheDocument()
+    expect(within(row).queryByText('Rosy')).not.toBeInTheDocument()
     expect(within(row).getByText('Madison')).toBeInTheDocument()
     expect(screen.getByText('45 owners')).toBeInTheDocument()
     expect(screen.getByText('Showing 1–20 of 45 owners')).toBeInTheDocument()
+  })
+
+  it('gives each row a single View action that opens the owner', async () => {
+    mockFetch(ownersAndOwnerOne)
+    renderApp()
+
+    const viewLink = await screen.findByRole('link', { name: 'View Franklin, George' })
+    expect(viewLink).toHaveAttribute('href', '/owners/1')
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+
+    await userEvent.click(viewLink)
+    expect(await screen.findByRole('heading', { name: 'George Franklin' })).toBeInTheDocument()
+  })
+
+  it('shows the owner initials as a decorative avatar', async () => {
+    mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+
+    const row = (await screen.findByRole('link', { name: 'Franklin, George' })).closest('tr')!
+    expect(within(row).getByText('GF')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('labels the page with an eyebrow and a title', async () => {
+    mockFetch(() => jsonResponse(makePage()))
+    renderApp()
+
+    expect(screen.getByText('Clinic administration')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Owners' })).toBeInTheDocument()
+    await screen.findByRole('link', { name: 'Franklin, George' })
   })
 
   it('shows "None" for an owner without pets', async () => {
@@ -42,14 +78,13 @@ describe('OwnersPage', () => {
   })
 
   it('opens the owner when the row is clicked', async () => {
-    mockFetch(() => jsonResponse(makePage()))
+    mockFetch(ownersAndOwnerOne)
     renderApp()
     const link = await screen.findByRole('link', { name: 'Franklin, George' })
 
     await userEvent.click(within(link.closest('tr')!).getByText('Madison'))
 
-    expect(await screen.findByRole('heading', { name: 'Owner details' })).toBeInTheDocument()
-    expect(screen.getByText('Owner #1')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'George Franklin' })).toBeInTheDocument()
   })
 
   it('shows the server message and retries on error', async () => {
@@ -64,6 +99,25 @@ describe('OwnersPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(await screen.findByRole('link', { name: 'Franklin, George' })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('keeps the rows and says the refresh failed when a later refetch fails', async () => {
+    let calls = 0
+    mockFetch(() =>
+      ++calls === 1 ? jsonResponse(makePage()) : Promise.reject(new TypeError('Failed to fetch')),
+    )
+    renderApp()
+    await screen.findByRole('link', { name: 'Franklin, George' })
+
+    // Going offline and back online triggers a refetch of the (stale) list, which now fails.
+    window.dispatchEvent(new Event('offline'))
+    window.dispatchEvent(new Event('online'))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Could not refresh owners')
+    expect(alert).toHaveTextContent('Showing the last results that loaded.')
+    expect(alert).not.toHaveTextContent('Could not load owners')
+    expect(screen.getByRole('link', { name: 'Franklin, George' })).toBeInTheDocument()
   })
 
   it('explains an access error without offering retry', async () => {

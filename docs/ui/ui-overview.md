@@ -1,8 +1,8 @@
 # UI Overview
 
-Status as of 2026-10-07. `petclinic-ui` has the app shell (header, navigation, assistant
-panel preview), the Owners page and the Add owner page. Owner details is a placeholder.
-This document describes the approach and conventions the Owners page establishes for every
+Status as of 2026-10-08. `petclinic-ui` has the app shell (header, navigation, assistant
+panel preview) and the owner screens: Owners list, Add owner, Owner details (with Delete)
+and Edit owner. This document describes the approach and conventions the Owners page establishes for every
 later screen; keep it current as the UI takes shape.
 
 Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
@@ -20,8 +20,16 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
 - **Feature-oriented folders**: `src/features/<area>/` holds each area's pages, hooks and
   components; `src/api/` holds the typed REST client; `src/components/` holds the shared
   building blocks; `src/lib/` holds small helpers. Shared pieces are extracted only once a
-  second screen needs them (straightforward over abstract, per `CLAUDE.md`).
-- **Server state via TanStack Query**, local UI state via `useState`. No global store.
+  second or third screen needs them (straightforward over abstract, per `CLAUDE.md`).
+- **Server state via TanStack Query**, local UI state via `useState`. No global store. Query
+  keys are `['owners', params]` and `['owner', id]`. The rules for layering, state, invalidation
+  and types are under [Frontend conventions](#frontend-conventions).
+- **Retries:** failed queries retry up to three times, but never on a 4xx (404, 403, 400 …),
+  which a retry cannot fix, so an unknown owner reports "not found" at once instead of after
+  about seven seconds. Network failures, 5xx, 408 and 429 are retried (`shouldRetry` in
+  `api/client.ts`). Writes are not retried.
+- **`204 No Content`** (the API's answer to PUT and DELETE) is handled in the API client, so
+  those calls resolve to nothing; screens refetch rather than read a response.
 - **Routing via React Router.** Every screen has its own URL. List state (search text, page,
   page size) lives in the query string so lists survive reload and back-navigation.
 - **API types** are hand-written in `src/api/types.ts`. Generating them from `openapi.yml`
@@ -35,10 +43,13 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│ 🐕 PetClinic   Owners                                                  │  48px header
+│ 🐕 PetClinic    Owners                                                 │  64px white header
+│                 ▔▔▔▔▔▔                                                 │  (underline = current)
 ├───────────────────────────────────────────────────────────────────────┤
-│  page content, max-width 1200px                                       │
-│                                                          [💬 Assistant]│  floating launcher
+│ ░░ teal artwork ░░  ┌──────────────────────────────┐  ░░ teal art ░░   │
+│                     │ one big rounded white card    │                   │
+│                     │ holds the screen              │     [💬 Assistant]│  floating launcher
+│                     └──────────────────────────────┘                   │
 └───────────────────────────────────────────────────────────────────────┘
 
    Panel open: the launcher disappears and the panel docks on the right
@@ -47,10 +58,22 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
 └──────────────────────────────────────────────┴────────────────────────┘
 ```
 
-- **Header**: dog mark (`src/assets/dog.svg`, rendered by `components/DogMark.tsx`; to replace
-  it, swap the file) and wordmark linking home, and the main navigation. Only built
-  sections appear in the navigation. The current section is marked with `aria-current`.
-  With one section there is no collapsed mobile menu; add one when a second section lands.
+- **Header**: 64px, white with a hairline bottom border. It holds the dog mark
+  (`src/assets/dog.svg`, rendered by `components/DogMark.tsx`; to replace it, swap the file)
+  with a 20px "PetClinic" wordmark linking home, then the main navigation. Navigation items
+  are plain 18px text links; the current one is teal and bold with a 3px underline just
+  beneath the label, and other items get a gray underline on hover. Only built sections
+  appear. The current section is marked with `aria-current`. With one section there is no
+  collapsed mobile menu; add one when a second section lands. The dog also serves as the
+  favicon (`index.html`).
+- **Page card**: every screen sits in one large rounded white card (24px radius, soft teal
+  shadow) floating over the page artwork. The list screen uses the wide card (max 1200px).
+  Detail and form pages (`/owners/...` other than the list) use a narrow card that hugs a
+  640px column (704px including padding), so the content and card edges line up.
+- **Backdrop artwork** (`components/Backdrop.tsx`): decorative, `aria-hidden`, fixed behind
+  the content: rich-teal blobs at the left and right edges, two light-blue clouds, and two
+  leaf clusters at the bottom of the page. It is hidden below 640px. There is no cartoon dog
+  in the art; the dog mark in the header is the only dog.
 - **Skip link and focus**: a "Skip to content" link, and focus moves to the main content when
   the route changes.
 - **Document title** is set per screen (`Owners – PetClinic`).
@@ -59,7 +82,7 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
 
 - **Launcher**: a floating "Assistant" button fixed at the bottom right of every page (rounded
   rectangle, chat icon, accent border). It is the only way to open the panel, and it is hidden
-  while the panel is open. It carries the UI's one shadow, because a floating control needs
+  while the panel is open. It has its own small shadow, because a floating control needs
   separation from the content beneath it. The page keeps extra bottom padding so it never
   covers the end of the content.
 - A **right-hand docked panel**, 380px wide, opened from the launcher. It is a stub:
@@ -79,25 +102,32 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   plain-language summary and explicit Confirm/Reject, plus "Review in form", which opens the
   real form prefilled so the change goes through the same validated path as a manual edit.
   A badge on the launcher will count unresolved suggestions made while the panel is closed. ⚠️ Whether the UI or the
-  agent performs a confirmed write is undecided (default: the UI, after Confirm).
+  agent performs a confirmed write is undecided (default: the UI, after Confirm). Confirmation
+  is not the access control: permission for AI writes is enforced by the backend (see Security).
 
 ## Visual conventions
 
-Restrained and information-dense: one accent color, hairline borders, no gradients, and no shadows except the floating assistant launcher's
-or decoration.
+Friendly but still information-dense: a teal palette over a soft teal page, rounded white
+surfaces, hairline borders and no gradients. The only shadows are the page card's soft one,
+the assistant launcher's and the delete dialog's.
 
 | Area | Convention |
 |---|---|
-| Typography | System font stack. 14px body and table text; 13px labels and column headers (600); 12px helper text; 22px page title (600); 16px section headings. Line height 1.5. |
+| Typography | System font stack. 14px body and table text; 13px field labels (600); 12px helper text and uppercase column headers; 22px page title; 16px section headings. Line height 1.5. Header wordmark 20px, nav 18px. |
 | Spacing | 4px scale: 4, 8, 12, 16, 24, 32, 48 (`--space-*`). |
-| Page width | Content max 1200px, centered, 24px gutters (16px on phones). Forms max 640px. |
-| Colors | Neutrals plus one muted teal accent `#0F766E`. Page background is a cool, slightly teal-tinted gray `#E8EDED` so white panels and the white header stand out; text, muted text and accent all keep at least 4.5:1 contrast on it. Danger `#B42318` for errors and destructive actions. All values are tokens in `tokens.css`; text meets 4.5:1 contrast. Light theme only for now. ⚠️ Accent and palette await approval after you see the page. |
-| Buttons | 36px high (44px on touch), 6px radius, 14px/500. `primary` (filled accent, one per view), `secondary` (bordered), `ghost` (text), `danger` (only for confirmed destructive actions). Anything that navigates but looks like a button is a `<Link>` using `buttonClassName`. |
-| Forms & inputs | Labels above fields, 36px inputs, 1px border, 2px accent focus ring. Helper text under the field. Required-ness stated once ("All fields are required") instead of asterisks. |
-| Validation | Inline under the field in red with an icon and plain wording; shown after the field is left or after a submit attempt. A failed submit shows a summary (focused, `role="alert"`) whose items link to the fields. Server errors show in an alert above the form and keep the entered values. |
-| Tables | Real `<table>` with a hidden caption and `th scope`. Tinted header row, hairline row dividers, 40px rows, hover tint, no zebra striping, no vertical rules. The name is a real link; the whole row is also clickable as a mouse convenience. |
-| Panels | One surface style: white, 1px border, 8px radius, no shadow. Never nested. |
-| Icons | About seven 16px inline-SVG icons in `components/Icon.tsx` (`currentColor`, 1.5px stroke). Used beside text; icon-only buttons carry an `aria-label`. |
+| Page width | Wide card max 1200px (list); narrow card 704px (detail and form pages); forms and the contact panel max 640px. 24px page gutters, 16px on phones (card padding 32px, 16px on phones). |
+| Colors | Page background `#EAF6F3` (soft teal). Accent teal `#0C7A6E` (hover `#0A665C`, tint `#E2F4F0`) for buttons, links, focus and the current nav item; white text on it is 5.2:1. The brighter artwork teals (`#2FB5A1`, `#7AD6C7`, `#BFEBE3`) and cloud blue `#C9E4F6` are decorative only: never put text on them (white on `#2FB5A1` is only 2.6:1). Danger `#B42318` for errors and destructive actions. All values are tokens in `tokens.css`. Light theme only for now. |
+| Radius | 10px controls and buttons, 14px inner panels and cards, 24px for the page card. |
+| Page header | Optional small **eyebrow** pill above the title (the Owners list uses "Clinic administration"; detail and form pages omit it), an icon tile beside the title, an optional subtitle, and actions on the right. The actions wrap below the title on narrow screens. |
+| Buttons | 40px high (44px on touch), 10px radius, 14px/500. `primary` (filled accent, one per view), `secondary` (bordered), `ghost` (text), `danger` (solid red, only for the confirm button of a destructive action). Anything that navigates but looks like a button is a `<Link>` using `buttonClassName`. |
+| Icon actions | Square 40px bordered icon controls (`iconAction`), a link or a button, for compact row and page actions: View (eye) in table rows; Edit (pencil) and Delete (trash, red outline) on Owner details. Each has an `aria-label` and a `title` tooltip. |
+| Forms & inputs | Labels above fields, 40px inputs, 1px border, 2px accent focus ring. Helper text under the field. Required-ness stated once ("All fields are required") instead of asterisks. One `TextField` component renders label, input, hint and error; extra props go straight to the `<input>`. |
+| Validation | Inline under the field in red with an icon and plain wording. Errors appear after the first submit attempt and then update live as the user fixes each field (leaving a field does not trigger an error). A failed submit shows a summary (focused, `role="alert"`) whose items link to the fields. Server errors show in an alert above the form and keep the entered values. The client rules mirror the API's; the server stays authoritative. |
+| Tables | Real `<table>` with a hidden caption and `th scope`, inside a bordered rounded card with the pagination footer. Tinted header row, hairline row dividers, 60px rows, hover tint, no zebra striping, no vertical rules. Each row has an initials avatar (decorative), the name as a real link, and a **View** icon link; the whole row is also clickable as a mouse convenience. Pets show as pills (first two, then "+N"). There is no delete in the list. |
+| Detail views | A bordered "Contact" panel (definition list; Address twice as wide as City and Telephone) and a "Pets" section of 240px cards (name and type tag side by side, birth date, visits). |
+| Confirmation dialog | `ConfirmDialog` on the native `<dialog>`: modal, Esc closes it, Cancel is focused first, focus returns to the opener. Used for Delete owner; it names what will be removed, stays open and shows the error if the action fails. |
+| Notices | A one-time confirmation (for example "Deleted owner …") is passed through navigation state and shown at the top of the next screen; it disappears as soon as the user searches or pages. |
+| Icons | About ten 16px inline-SVG icons in `components/Icon.tsx` (`currentColor`, 1.5px stroke). Used beside text; icon-only controls carry an `aria-label`. |
 
 ### Standard list-screen states
 
@@ -107,7 +137,9 @@ Every screen handles these, as the Owners page demonstrates:
   "Loading…". Later loads (next page, new search) keep the previous rows, dimmed, with
   `aria-busy`.
 - **Error**: an alert above the table with the server's message and **Retry**; existing rows
-  stay visible. 401/403 get their own wording and no Retry.
+  stay visible. If a refresh fails while rows are showing, the alert says "Could not refresh
+  owners" and "Showing the last results that loaded", so it never claims nothing loaded.
+  401/403 get their own wording and no Retry.
 - **Empty**: "No … yet" with an Add action when there is no data at all; "No … found" with a
   way back to the full list when a search matched nothing; a way back to page 1 when the URL
   asks for a page past the end.
@@ -117,18 +149,53 @@ Every screen handles these, as the Owners page demonstrates:
 ≥1024px full table; 640–1023px the Address column folds under the name; below 640px each row
 is a compact cell (name, then address and city, then phone and pets). No horizontal scrolling.
 
+## Frontend conventions
+
+Defaults the owner screens establish for every later feature. They guide judgment; they are not
+a checklist to satisfy at the cost of simplicity.
+
+1. **Server data lives in TanStack Query.** Do not mirror it into `useState` to display or derive
+   it. Editable drafts are the exception: a form may be seeded once from the cache
+   (`EditOwnerForm` does this), edited as local state, and discarded on save or cancel. Reset a
+   draft when the record changes by giving the form a `key` (for example `key={owner.id}`). Use
+   `useEffect` only to sync with the outside world (title, focus, timers, the dialog), never to
+   derive values.
+2. **Layering is a default, not a quota.** The usual shape is plain functions in `src/api/`,
+   hooks in one file per feature (`useOwners.ts`), then components. Do not add a layer or
+   wrapper that only forwards a call. A feature with one read can define its hook beside the
+   page and split later, when a second consumer appears. Query keys are `['owners', params]`
+   and `['owner', id]`.
+3. **List state belongs in the URL; form and dialog state stays local.** After a successful
+   write, invalidate only the queries that write affected, never everything: adding an owner
+   invalidates `['owners']`; updating one also invalidates `['owner', id]`; deleting one removes
+   `['owner', id]` and invalidates `['owners']`. Do not invalidate after a failed write. (Adding
+   a pet later should refresh that owner's details and the owner lists, which show pets, but
+   not other owners.)
+4. **Types.** Use `interface` for API shapes and string unions instead of enums. Use
+   `Record<K, V>` for typed key-to-value mappings (field labels, max lengths). Use `Partial<T>`
+   when some properties of an object type may be omitted (form errors as
+   `Partial<Record<OwnerField, string>>`, test overrides as `Partial<Owner>`). `Partial` is not
+   specific to maps.
+5. **Confirmation is UX; the backend enforces permission.** Destructive actions, and
+   AI-initiated writes, go through a confirmation dialog so the user consents knowingly. A
+   dialog never replaces authorization: anything that can call the API can skip it, so
+   permission for AI writes is enforced in the backend (see
+   [Security and authentication](#security-and-authentication)).
+
 ## Reusable pieces
 
-`AppShell`, `AssistantPanel`, `PageHeader`, `Button`/`buttonClassName`, `SearchField`,
-`Pagination`, `EmptyState`, `ErrorAlert`, `FormField`, `Icon`, `DogMark`, plus the
-`useDocumentTitle` hook. Table markup is owner-specific (`OwnersTable`); extract a shared
-table only when a second table exists.
+`AppShell`, `Backdrop`, `AssistantPanel`, `PageHeader`, `BackLink`, `Button`/`buttonClassName`,
+`SearchField`, `Pagination`, `EmptyState`, `ErrorAlert`, `TextField`, `ConfirmDialog`, `Icon`,
+`DogMark`, plus the `useDocumentTitle` hook. Owner-specific: `OwnersTable`, `OwnerForm`
+(shared by Add and Edit) and `OwnerRoute` (`useOwnerFromRoute`, `OwnerLoadStatus`,
+`OwnerNotFound`, shared by Details and Edit). Extract a shared table only when a second table
+exists.
 
 ## Security and authentication
 
 - The REST API has security **disabled by default** (`petclinic.security.enable=false`).
   When enabled it uses HTTP Basic with roles `OWNER_ADMIN`, `VET_ADMIN` and `ADMIN`
-  (`ADMIN` outranks the other two, [ADR-0007](../adr/0007-admin-role-hierarchy.md)).
+  (`ADMIN` outranks the other two, [ADR-0006](../adr/0006-admin-role-hierarchy.md)).
   Owner/pet/visit endpoints require `OWNER_ADMIN`; vet/specialty writes require
   `VET_ADMIN`; pet types are readable by either.
 - ⚠️ **No login flow is designed yet.** Screens send no credentials and assume security is
@@ -139,6 +206,14 @@ table only when a second table exists.
 - Owner data is personal data. It is held in memory only (React Query cache), never written
   to browser storage or logged. All API text is rendered through React's default escaping.
 - Hiding or disabling actions by role is a convenience only; the backend enforces access.
+- **AI-initiated writes (design requirement, not built):** a confirmation dialog is consent, not
+  authorization. The agent can read owner and visit text that someone typed, so it must be treated
+  as capable of being steered by that text. The backend must therefore enforce what an AI-initiated
+  write may do: the agent's own credentials should be read-only, and a write should run with the
+  confirming user's credentials and the exact payload they approved, and be audited as AI-proposed
+  and user-confirmed. ⚠️ Today there is no agent principal and `OWNER_ADMIN` covers reads and
+  writes, so this needs its own ADR before the agent can propose writes (scheduled with the
+  backend work, after the last-name sort branch).
 
 ## Known gaps
 
@@ -146,7 +221,13 @@ table only when a second table exists.
   search are an approved backend change scheduled for a separate branch after this one
   merges. Until then the Name column is not sortable and search may be case-sensitive,
   depending on the database (H2 and PostgreSQL are; MySQL and HSQLDB are not).
-- **Owner details** is a placeholder page.
+- **Add pet and Add visit** are not built yet, so Owner details shows pets and visits but
+  cannot add them.
+- ⚠️ **Deleting an owner who has pets fails** because of a backend bug: `Pet.type` is mapped with
+  `CascadeType.ALL`, so the delete tries to remove a shared pet type and the database rejects it
+  (the API answers 404 "data constraint violation"; nothing is lost). The UI shows that message in
+  the dialog. Owners without pets delete fine. Fix is in the backend, on its own branch; see
+  [screen-mapping.md](screen-mapping.md).
 - **Performance note:** the paged owners endpoint loads each owner's pets with a separate
   query (eager fetch), about 21 queries per 20-row page. Acceptable at clinic scale; known
   and deliberately left alone for now.

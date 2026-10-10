@@ -1,6 +1,6 @@
 # Fixing the status code for denied @PreAuthorize checks
 
-This recounts a bug found while verifying [ADR-0007](../adr/0007-admin-role-hierarchy.md)
+This recounts a bug found while verifying [ADR-0006](../adr/0006-admin-role-hierarchy.md)
 (the ROLE_ADMIN hierarchy) and the fix for it. It's not an architectural
 decision — there was never a real alternative to weigh, just a wrong status
 code to correct — so it lives here instead of in `../adr`.
