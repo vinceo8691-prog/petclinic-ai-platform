@@ -104,7 +104,9 @@ paths:
       parameters:
         - name: lastName
           in: query
-          description: Last name.
+          description: >-
+            Last name prefix. Matches owners whose last name starts with this text, ignoring case.
+            % and _ are matched literally, not as wildcards.
           required: false
           schema:
             type: string
@@ -146,7 +148,9 @@ paths:
       parameters:
         - name: lastName
           in: query
-          description: Last name.
+          description: >-
+            Last name prefix. Matches owners whose last name starts with this text, ignoring case.
+            % and _ are matched literally, not as wildcards.
           required: false
           schema:
             type: string

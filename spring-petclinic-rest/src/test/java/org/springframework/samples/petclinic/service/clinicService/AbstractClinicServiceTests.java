@@ -452,6 +452,57 @@ abstract class AbstractClinicServiceTests {
     }
 
     @Test
+    void shouldFindOwnersPageByLastNameIgnoringCase() {
+        for (String search : List.of("davis", "DAVIS", "dAv", "Davis")) {
+            Page<Owner> owners = this.ownerService.findOwners(search, PageRequest.of(0, 10, Sort.by("id")));
+            assertThat(owners.getTotalElements()).as("search for %s", search).isEqualTo(2);
+            assertThat(owners.getContent()).extracting(Owner::getLastName).containsOnly("Davis");
+        }
+    }
+
+    @Test
+    void shouldFindOwnersByLastNameIgnoringCase() {
+        assertThat(this.ownerService.findOwnerByLastName("davis")).hasSize(2);
+        assertThat(this.ownerService.findOwnerByLastName("BLACK")).extracting(Owner::getFirstName).containsExactly("Jeff");
+        assertThat(this.ownerService.findOwnerByLastName("zzz")).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void shouldMatchPercentUnderscoreAndBangLiterallyInThePagedSearch() {
+        saveOwner("A", "Per%cent");
+        saveOwner("B", "Perxcent");
+        saveOwner("C", "Under_score");
+        saveOwner("D", "Underxscore");
+        saveOwner("E", "Bang!");
+        PageRequest firstPage = PageRequest.of(0, 10, Sort.by("id"));
+
+        assertThat(this.ownerService.findOwners("Per%", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Per%cent");
+        assertThat(this.ownerService.findOwners("Per", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Per%cent", "Perxcent");
+        assertThat(this.ownerService.findOwners("Under_", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Under_score");
+        assertThat(this.ownerService.findOwners("Bang!", firstPage).getContent()).extracting(Owner::getLastName).containsExactly("Bang!");
+        // A bare wildcard or escape character is just text, so it matches nothing here.
+        assertThat(this.ownerService.findOwners("%", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("_", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("!", firstPage).getTotalElements()).isZero();
+        assertThat(this.ownerService.findOwners("D_vis", firstPage).getTotalElements()).isZero();
+    }
+
+    @Test
+    @Transactional
+    void shouldMatchPercentUnderscoreAndBangLiterallyInTheUnpagedSearch() {
+        saveOwner("A", "Per%cent");
+        saveOwner("B", "Perxcent");
+        saveOwner("C", "Under_score");
+        saveOwner("D", "Underxscore");
+
+        assertThat(this.ownerService.findOwnerByLastName("Per%")).extracting(Owner::getLastName).containsExactly("Per%cent");
+        assertThat(this.ownerService.findOwnerByLastName("Under_")).extracting(Owner::getLastName).containsExactly("Under_score");
+        assertThat(this.ownerService.findOwnerByLastName("%")).isEmpty();
+        assertThat(this.ownerService.findOwnerByLastName("D_vis")).isEmpty();
+    }
+
+    @Test
     @Transactional
     void shouldDeleteOwner(){
     	Owner owner = this.ownerService.findOwnerById(1);

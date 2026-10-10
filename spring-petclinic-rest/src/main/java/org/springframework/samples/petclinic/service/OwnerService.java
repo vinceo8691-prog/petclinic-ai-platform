@@ -24,12 +24,25 @@ public class OwnerService {
         return ownerRepository.findAll();
     }
 
+    /**
+     * Case-insensitive prefix search by last name, or every owner when {@code lastName} is null. The text is
+     * matched literally: a user-typed {@code %} or {@code _} is not a wildcard.
+     */
     @Transactional(readOnly = true)
     public Page<Owner> findOwners(String lastName, Pageable pageable) throws DataAccessException {
         if (lastName != null) {
-            return ownerRepository.findByLastName(lastName, pageable);
+            return ownerRepository.findByLastName(escapeLikePattern(lastName), pageable);
         }
         return ownerRepository.findAll(pageable);
+    }
+
+    /**
+     * Escapes the LIKE wildcards and the escape character itself so user input is matched literally. The
+     * repository queries declare {@code ESCAPE '!'}; {@code !} is used instead of a backslash because
+     * databases such as MySQL treat a backslash specially inside string literals.
+     */
+    static String escapeLikePattern(String text) {
+        return text.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 
     @Transactional
@@ -49,7 +62,7 @@ public class OwnerService {
 
     @Transactional(readOnly = true)
     public Collection<Owner> findOwnerByLastName(String lastName) throws DataAccessException {
-        return ownerRepository.findByLastName(lastName);
+        return ownerRepository.findByLastName(escapeLikePattern(lastName));
     }
 
 }
