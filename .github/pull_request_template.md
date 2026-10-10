@@ -1,4 +1,4 @@
-<!-- The title starts with PCXXX_ (the next unused three-digit number), then a short name. -->
+<!-- The branch name and this title both start with PCXXX_ (the next unused three-digit number), then a short name. -->
 
 ## Summary
 
