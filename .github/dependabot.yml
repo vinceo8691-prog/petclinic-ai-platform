@@ -1,0 +1,45 @@
+# Version-update PRs. Security updates are switched on separately in the repository settings.
+# GitHub only reads this file from the repository root, so each ecosystem names its folder.
+# Each ecosystem has at most three Dependabot PRs open at a time, to keep the noise down.
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/spring-petclinic-rest"
+    open-pull-requests-limit: 3
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      maven-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "maven"
+    directory: "/petclinic-ai-agent"
+    open-pull-requests-limit: 3
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      maven-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/petclinic-ui"
+    open-pull-requests-limit: 3
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    open-pull-requests-limit: 3
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
