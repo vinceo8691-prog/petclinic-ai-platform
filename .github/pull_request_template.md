@@ -1,4 +1,4 @@
-<!-- The branch name and this title both start with PCXXX_ (the next unused three-digit number), then a short name. -->
+<!-- The branch is named feature/PCXXX_short_name and this title starts with PCXXX_ (the next unused three-digit number), then a short name. -->
 
 ## Summary
 

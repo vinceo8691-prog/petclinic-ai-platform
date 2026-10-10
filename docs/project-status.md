@@ -16,7 +16,7 @@ start of each week and replace the sections below; older weeks stay in git histo
   2026-10-10): root Dependabot config, Backend CI, UI CI and Newman smoke tests on every PR and on
   pushes to `main`, and a PR template. The `main protection` ruleset is active.
 - **PC004** (last-name sort, case-insensitive search and the telephone fix) is in progress on
-  `PC004_backend_owner_sort_fix`.
+  `feature/PC004_backend_owner_sort_fix`.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -60,7 +60,7 @@ start of each week and replace the sections below; older weeks stay in git histo
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
 1. **PC004 ⚠️, last-name sort, case-insensitive search and the telephone fix** (in progress,
-   `PC004_backend_owner_sort_fix`).
+   `feature/PC004_backend_owner_sort_fix`).
    - **Sort and search, backend first:** `sort` (`id` or `lastName`, default `id`) and `direction`
      (`asc` or `desc`, default `asc`) on `GET /v2/owners`; last-name sorts break ties on first name,
      then id; an invalid `sort` returns 400. Search becomes case-insensitive on both v1 and v2 with
