@@ -2055,11 +2055,13 @@ components:
           example: Madison
         telephone:
           title: Telephone number
-          description: The telephone number of the pet owner.
+          description: >-
+            The telephone number of the pet owner: exactly 10 digits, with no spaces or dashes.
+            This matches the rule the Owner entity enforces when it is saved.
           type: string
-          minLength: 1
-          maxLength: 20
-          pattern: '^[0-9]*$'
+          minLength: 10
+          maxLength: 10
+          pattern: '^[0-9]{10}$'
           example: '6085551023'
       required:
         - firstName
