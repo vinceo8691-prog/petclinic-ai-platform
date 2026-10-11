@@ -216,18 +216,22 @@ logging), so this is new.
 | `source` | `AI_ASSISTED` | Request header sent by the UI | **Client-asserted** |
 | `operation` | `UPDATE_OWNER_TELEPHONE` (the registry name from decision 4) | Request header sent by the UI | **Client-asserted** |
 | `proposalId` | UUID | Request header sent by the UI, issued by the agent | **Client-asserted** |
-| `changedFields` | `["telephone"]` | Backend, by comparing the stored record with the request | Server-derived |
 
 - **Request headers:** `X-AI-Operation` (a registry name) and `X-AI-Proposal-Id` (a UUID). Both
   are validated against the registry and the UUID format before use; a value that fails
   validation is never logged raw (it would allow log injection) and is recorded as an
   invalid claim, with the business request still decided by authorization alone.
 - **What is not recorded:** no owner record, no old or new values, no telephone number, no
-  request body. Field *names* only. The employee's identifier is personal data too, so the
-  audit stream is access-controlled like other logs.
+  request body. The operation name already says which field the change concerns. The
+  employee's identifier is personal data too, so the audit stream is access-controlled like
+  other logs.
 - **Failures are audited as well as successes,** including a 403, so the event is emitted
   around the controller (a filter or interceptor reading the final status), not inside the
-  method body that `@PreAuthorize` may never reach.
+  method body that `@PreAuthorize` may never reach. Every field in the table is available to
+  such a filter: the principal, the path, the validated headers and the final status. A
+  list of the fields that actually changed is deliberately not part of the minimum event,
+  because it would need the stored record and so an emitter inside the service layer; add it
+  only if a need appears.
 - **Where it goes (MVP):** a dedicated logger category, one structured (JSON) line per event,
   shipped to CloudWatch Logs with its own retention. A persistent, queryable audit table is a
   later option if durable history is needed.

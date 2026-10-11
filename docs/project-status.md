@@ -1,6 +1,6 @@
 # Project Status
 
-**Week of 2026-10-05 to 2026-10-11**, updated 2026-10-10 (Saturday). Update this file at the
+**Week of 2026-10-05 to 2026-10-11**, updated 2026-10-11 (Sunday). Update this file at the
 start of each week and replace the sections below; older weeks stay in git history.
 
 > ⚠️ **Assumptions to confirm** are marked with ⚠️. The week boundaries (Monday to Sunday) and
@@ -15,8 +15,13 @@ start of each week and replace the sections below; older weeks stay in git histo
 - CI and repo hygiene are on `main` (PR #5, **PC003_CI_Repo_Enhancements**, squash-merged
   2026-10-10): root Dependabot config, Backend CI, UI CI and Newman smoke tests on every PR and on
   pushes to `main`, and a PR template. The `main protection` ruleset is active.
-- **PC004** (last-name sort, case-insensitive search and the telephone fix) is built and tested
-  on `feature/PC004_backend_owner_sort_fix`, ready for review.
+- **PC004** (last-name sort, case-insensitive search and the telephone fix) is on `main`
+  (PR #13, merged 2026-10-10).
+- **PC006** (ADR-0007 on how the AI agent is authorized, the architecture UML diagrams and the
+  performance document) is open as PR #14, docs only.
+- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is
+  committed on the local branch `feature/PC007_owners_sort_tooltip`. It is not pushed yet; it goes
+  up after PC006 merges.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -32,7 +37,7 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
   single-character names outside loops and short callbacks.
 
-**PC004, built, ready for review** (`feature/PC004_backend_owner_sort_fix`; 221 backend tests, 112 UI tests)
+**PC004, merged 2026-10-10** (PR #13; 221 backend tests, 112 UI tests)
 - **Sort:** `GET /v2/owners` takes `sort` (`id` or `lastName`) and `direction` (`asc` or `desc`);
   last-name sorts ignore case and break ties on first name, then id. The Name column header in the
   UI cycles A to Z, Z to A, default, with the sort in the URL.
@@ -74,26 +79,27 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC004 ⚠️, last-name sort, case-insensitive search and the telephone fix** (built, ready for
-   review on `feature/PC004_backend_owner_sort_fix`; the plan below is what was built).
-   - **Sort and search, backend first:** `sort` (`id` or `lastName`, default `id`) and `direction`
-     (`asc` or `desc`, default `asc`) on `GET /v2/owners`; last-name sorts break ties on first name,
-     then id; an invalid `sort` returns 400. Search becomes case-insensitive on both v1 and v2 with
-     `%` and `_` escaped. Tests include the H2 profile; docs updated. Then the UI Name column sort
-     (`aria-sort`, URL parameters). Full design is in the saved plan.
-   - **Telephone validation mismatch:** the entity requires exactly 10 digits but `openapi.yml`
-     allows up to 20, so a bad number gets a 500. Change the spec to exactly 10 digits, map entity
-     validation failures to 400, and update the UI rule, tests and docs to match.
-2. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
-3. **Agent-authorization ADR, its own branch and PR ⚠️** (number not assigned; by default after
-   PC005). Moved out of the sort PR on 2026-10-10 because it also needs a new role or scope in the
-   backend. The backend enforces what AI-initiated writes may do; the agent's own credentials are
-   read-only; a confirmed write runs with the confirming user's credentials and the exact approved
-   payload, audited as AI-proposed and user-confirmed.
+1. **PC006, ADR-0007 and the architecture docs** (PR #14, open, docs only). ADR-0007 is Proposed.
+   It decides that the agent acts as the requesting employee and has no write path, so **no new
+   authority role is needed** (this replaces the earlier plan for a read-only agent role). The AI
+   review comment is posted; two review items are fixed on the branch.
+2. **PC007, owners Name sort tooltip** (local branch, one commit). Push and open the PR after
+   PC006 merges.
+3. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
 4. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
    Backlog).
-5. **After that:** Add pet, then Edit pet, Add visit and the Vets list; the login design; wiring
-   the assistant once `petclinic-ai-agent` has endpoints.
+5. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
+   1. List the screens needed to cover the API use cases.
+   2. Build the screens one at a time (Add pet, Edit pet, Add visit, Vets list, and so on).
+   3. Connect the screens to the API.
+   4. **Login page and its own ADR**, once the UI screens exist. This is the prerequisite for
+      enabling security outside local development and for the agent flow, because ADR-0007's
+      interim design forwards the employee's credentials and its target is token-based
+      authentication.
+   5. Build the AI agent with its features, evals and guardrails, in the three stages in
+      ADR-0007: read-only first, then one AI-proposed write (`UPDATE_OWNER_TELEPHONE`), then
+      stronger approval guarantees only if needed.
+   6. Integrate UI, agent and API (UI to agent to API) and implement the confirmed-write flow.
 
 ## Blockers and risks
 
@@ -102,13 +108,18 @@ In the order we agreed, one branch at a time, each merged and approved before th
   rejects it. The API answers 404 "data constraint violation" and no data is lost. Owners with
   no pets delete fine. Blocked until PC005; the UI shows the server's message in the dialog.
 - **No login flow is designed.** Security is off by default and the UI sends no credentials.
-  This blocks any non-local deployment and needs its own ADR.
+  This blocks any non-local deployment and needs its own ADR. It is planned for after the UI
+  screens are built (see the planned flow above). ADR-0007 does not yet say where the browser
+  holds the employee's credentials; the login ADR must decide that (memory only, never
+  `localStorage`).
 - **No JDK on the shell `PATH`.** Backend builds from the terminal need `JAVA_HOME` set (a JDK
   is at `C:\Users\vince\.jdks\openjdk-25.0.2`). IntelliJ is unaffected.
 - **Known and accepted:** the paged owners query loads each owner's pets separately (about 21
   queries per 20-row page). Deliberately left alone.
 - ⚠️ **Last-write-wins edits:** `PUT /owners/{id}` has no version or ETag, so two people editing
-  the same owner overwrite each other silently.
+  the same owner overwrite each other silently. ADR-0007 decision 5 sets the plan: a confirm-time
+  comparison for AI-confirmed writes now (a millisecond window is accepted), and `@Version` with
+  `ETag` / `If-Match` as the target in its own PR, which also fixes the Edit owner page.
 
 ## Important decisions
 
@@ -142,15 +153,17 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - Look and feel: teal palette, white card over decorative artwork, English text, art hidden on
   phones, one dog (the header mark, also the favicon).
 
-**Backend (approved, not yet built)**
-- `GET /v2/owners` gains `sort` (`id` | `lastName`, default `id`) and `direction` (`asc` | `desc`,
-  default `asc`); last-name sorts break ties on first name, then id. The UI keeps using `id`
-  until the sort branch lands.
-- Owner search becomes case-insensitive on both v1 and v2, with `%` and `_` escaped.
+**Backend (built in PC004)**
+- `GET /v2/owners` takes `sort` (`id` | `lastName`, default `id`) and `direction` (`asc` | `desc`,
+  default `asc`); last-name sorts break ties on first name, then id.
+- Owner search is case-insensitive on both v1 and v2, with `%` and `_` escaped.
 
 **Security**
 - `ROLE_ADMIN` outranks `OWNER_ADMIN` and `VET_ADMIN` (ADR-0006).
 - Denied authorization returns 403, not 500.
+- ADR-0007 (Proposed, PR #14): the agent acts as the requesting employee and never writes; a
+  proposal is a closed contract (one operation to start); the UI executes confirmed writes; the
+  audit event is structured logging, with the "AI-assisted" mark treated as a claim, not proof.
 - Never put credentials in `VITE_*` variables; owner data is held in memory only; only the
   assistant's open/closed preference is stored in `localStorage`.
 
