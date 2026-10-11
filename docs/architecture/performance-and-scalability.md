@@ -31,7 +31,7 @@ Related: [system-overview](system-overview.md), [deployment diagram](uml/05-depl
 | UI debounces search (300 ms), keeps the previous page while the next loads, and does not refetch on window focus | Decided | `OwnersPage.tsx`, `App.tsx` (`staleTime` 30 s) |
 | A page of owners probably costs a query per owner and per pet | Known (expected, not measured) | `Owner.pets` and `Pet.visits` are eager and the paged query has no fetch join |
 | The last-name search and sort use `LOWER(last_name)`, which the plain `last_name` index may not serve on PostgreSQL or MySQL | Known (expected, not measured) | `OwnerRepository`; the tests do not exercise PostgreSQL or MySQL |
-| With security enabled, every request pays a BCrypt check and two JDBC queries | Known | HTTP Basic is stateless; `BasicAuthenticationConfig` |
+| With security enabled, every request pays a BCrypt check and two JDBC queries | Known (measured once, see [Measurements](#measurements)) | HTTP Basic is stateless and no session is created; about 70 to 90 ms per request against 5 to 10 ms with security off, on a local machine; `BasicAuthenticationConfig` |
 | v1 list endpoints (`/owners`, `/pets`, `/visits`) are unbounded | Known | The UI uses the paged v2 endpoints |
 | Whether any of the above matters at the real data size | Open | Needs a measurement with realistic data on PostgreSQL |
 | Latency of the AI assistant | Open | There is no agent yet, and model latency is not known; a tool loop multiplies it by the number of tool calls |
@@ -98,7 +98,8 @@ added to the sections above only after a result and a reason exist.
 
 | Date | What | Data and setup | Result |
 |---|---|---|---|
-| | | | |
+| 2026-10-11 | Does HTTP Basic create a session? | Local run, H2 profile, `petclinic.security.enable=true`, `curl` against `GET /api/v2/owners?size=1` | No `Set-Cookie` and no `JSESSIONID`; a request carrying only a cookie gets 401. Every request authenticates, so the per-request cost is real |
+| 2026-10-11 | Authentication cost per request | Same setup, 10 requests each, seed data, one machine, includes `curl` start-up (an indication, not a load test) | Security off: 5 to 10 ms (first request 124 ms, cold). Security on, Basic `admin`: 69 to 97 ms. Wrong password: 69 to 88 ms, so BCrypt runs on failure too. About 65 to 80 ms of the difference is authentication |
 
 ## Open questions that block decisions
 
