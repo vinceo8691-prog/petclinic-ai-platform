@@ -22,7 +22,7 @@ start of each week and replace the sections below; older weeks stay in git histo
   now lives in `docs/architecture/`.
 - **PC007** (a tooltip on the owners Name sort button that says what the next click does) is on
   `main` (PR #15, merged 2026-10-11), together with ADR-0007's acceptance.
-- **PC005** (owner delete fix) is open as a PR from `feature/PC005_owner-delete-fix`, waiting for
+- **PC005** (owner delete fix) is open as PR #16 from `feature/PC005_owner-delete-fix`, waiting for
   the AI review comment and the merge.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
@@ -92,7 +92,7 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC005, owner delete fix** (PR open from `feature/PC005_owner-delete-fix`; 231 backend tests).
+1. **PC005, owner delete fix** (PR #16, open; 231 backend tests).
    Post the AI review comment, then merge.
    - Removed the cascade from `Pet.type`. Deleting an owner removes their pets and visits and
      leaves every pet type alone.
