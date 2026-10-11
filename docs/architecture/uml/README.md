@@ -39,3 +39,6 @@ and in the diagrams if they are wrong.
 5. **Routing**: one public ALB with path rules (`/petclinic/*` to the API, `/agent/*` to the
    agent), reached through CloudFront; the UI is served from S3 by the same distribution.
 6. **Network**: Fargate tasks and RDS in private subnets; outbound via NAT gateway.
+7. **CI/CD identity**: deployments use a role that GitHub Actions assumes through OpenID Connect
+   (no long-lived AWS keys), with permission to push images and update ECS services but not to
+   read secret values. See the IAM table in [04-security.md](04-security.md).

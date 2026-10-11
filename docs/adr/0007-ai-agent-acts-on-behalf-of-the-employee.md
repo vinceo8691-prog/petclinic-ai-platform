@@ -122,6 +122,13 @@ never part of the contract and never sent to the API.
    full record, so the model cannot alter any other field (the update endpoint replaces the
    whole record).
 
+The update answers **204 No Content**: `updateOwner` builds its response with an owner body
+and `HttpStatus.NO_CONTENT`, and the container drops a body from a 204, which the controller
+tests also assert. `openapi.yml` documents 200 with an `Owner` body instead, so the spec and
+the behaviour disagree. The UI must therefore not rely on the response body: after a
+confirmed write it re-fetches the owner to show the result (the same `GET` used for the
+comparison in decision 5 is a candidate to reuse).
+
 **Validation happens at every hop, and the proposal is never trusted:**
 
 - The agent validates the model's output against the schema before returning it, and

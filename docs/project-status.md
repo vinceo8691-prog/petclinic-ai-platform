@@ -191,6 +191,10 @@ past about ten items, move it to GitHub Issues and link them here.
   updates, not security fixes, so the backend stays on springdoc 3.1.0, refactor-first 0.9.0 and
   the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
   Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
+- **`PUT /owners/{id}` spec and behaviour disagree.** `openapi.yml` documents 200 with an `Owner`
+  body; the controller answers 204 (a body on a 204 is dropped) and the tests assert 204. Found
+  while reviewing PC006. Decide which is right (the UI already does not use the body) and align
+  the spec, or change the controller and tests. Not scheduled.
 - **Show the server's field messages in the forms.** A 400 from the API shows only "The request
   contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
   reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not
