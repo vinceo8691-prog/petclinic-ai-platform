@@ -12,6 +12,16 @@ const SORT_HINT: Record<'none' | SortDirection, string> = {
   desc: 'sorted Z to A, activate to clear the sorting',
 }
 
+/**
+ * Tooltip on the Name button: what a click does next. The arrow icon shows the sort that is applied now
+ * (up = A to Z), which reads as the opposite of "what happens when I select it", so the action is spelled out.
+ */
+const SORT_TOOLTIP: Record<'none' | SortDirection, string> = {
+  none: 'Sort A to Z',
+  asc: 'Sort Z to A',
+  desc: 'Clear the sorting',
+}
+
 const ARIA_SORT: Record<'none' | SortDirection, 'none' | 'ascending' | 'descending'> = {
   none: 'none',
   asc: 'ascending',
@@ -33,7 +43,7 @@ function Headers({ sortDirection, onToggleSort }: SortProps) {
     <tr>
       <th scope="col" aria-sort={onToggleSort ? ARIA_SORT[sortState] : undefined}>
         {onToggleSort ? (
-          <button type="button" className={styles.sortButton} onClick={onToggleSort}>
+          <button type="button" className={styles.sortButton} title={SORT_TOOLTIP[sortState]} onClick={onToggleSort}>
             Name
             <span className="visually-hidden">, {SORT_HINT[sortState]}</span>
             <Icon name={SORT_ICON[sortState]} />

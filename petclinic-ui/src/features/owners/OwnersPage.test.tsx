@@ -256,6 +256,18 @@ describe('OwnersPage', () => {
       expect(nameHeader()).toHaveAttribute('aria-sort', 'none')
     })
 
+    it('has a tooltip that says what the next click does', async () => {
+      mockFetch(() => jsonResponse(makePage()))
+      renderApp()
+      await screen.findByRole('link', { name: 'Franklin, George' })
+
+      expect(nameButton()).toHaveAttribute('title', 'Sort A to Z')
+      await userEvent.click(nameButton())
+      await waitFor(() => expect(nameButton()).toHaveAttribute('title', 'Sort Z to A'))
+      await userEvent.click(nameButton())
+      await waitFor(() => expect(nameButton()).toHaveAttribute('title', 'Clear the sorting'))
+    })
+
     it('goes back to page 1 whenever the sort changes', async () => {
       const fetchMock = mockFetch(() => jsonResponse(makePage()))
       renderApp('/owners?page=2')
