@@ -51,13 +51,10 @@ Security is off by default.
   refetches the owner instead of reading a response.
 - **Delete owner**: `DELETE /owners/{ownerId}` answers `204`. `Owner.pets` and `Pet.visits` are mapped
   with `CascadeType.ALL`, so the owner's pets and their visits go with them; the confirmation says so.
-  ⚠️ **Known backend bug (verified 2026-10-08):** deleting an owner who has pets fails. `Pet.type` is
-  also mapped `CascadeType.ALL`, so removing a pet cascades a remove to its shared pet type; Hibernate
-  then tries `update pets set type_id = null` for the other pets of that type, the NOT NULL column
-  rejects it, and the transaction rolls back (no data is lost). The API answers `404` (the exception
-  handler maps every data-integrity error to 404) with "data constraint violation". Owners without
-  pets delete fine (`204`). Fix belongs in `spring-petclinic-rest` (drop the cascade on `Pet.type`)
-  on its own branch, with a test; until then the UI shows the server message in the delete dialog.
+  `Pet.type` is not cascaded, so the pet types the owner's pets shared with other pets stay in
+  place. (Before PC005, deleting an owner who had pets failed with a `404` "data constraint violation"
+  because the delete cascaded to the shared pet type; that bug is fixed.) If a delete fails for any
+  other reason the UI shows the server's message in the dialog.
 
 ## Notes
 

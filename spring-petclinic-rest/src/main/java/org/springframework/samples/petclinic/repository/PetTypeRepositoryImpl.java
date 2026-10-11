@@ -36,7 +36,9 @@ public class PetTypeRepositoryImpl implements PetTypeRepositoryOverride {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void delete(PetType petType) {
-        this.em.remove(this.em.contains(petType) ? petType : this.em.merge(petType));
+		// The pet type, its pets and their visits are removed with the JPQL deletes below. Do not call
+		// em.remove(petType) first: the select below loads pets that still point at it, and the next
+		// executeUpdate() auto-flushes, where Hibernate rejects managed pets that reference a removed entity.
 		Integer petTypeId = petType.getId();
 
 		List<Pet> pets = this.em.createQuery("SELECT pet FROM Pet pet WHERE type.id=" + petTypeId).getResultList();
