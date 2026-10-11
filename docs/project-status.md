@@ -18,10 +18,11 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **PC004** (last-name sort, case-insensitive search and the telephone fix) is on `main`
   (PR #13, merged 2026-10-10).
 - **PC006** (ADR-0007 on how the AI agent is authorized, the architecture UML diagrams and the
-  performance document) is open as PR #14, docs only.
-- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is
-  committed on the local branch `feature/PC007_owners_sort_tooltip`. It is not pushed yet; it goes
-  up after PC006 merges.
+  performance document) is on `main` (PR #14, merged 2026-10-11), docs only. `system-overview.md`
+  now lives in `docs/architecture/`.
+- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is open
+  as PR #15 on `feature/PC007_owners_sort_tooltip`, waiting for the AI review comment and the
+  merge.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -36,6 +37,17 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **Fix for denied `@PreAuthorize` checks returning 500 instead of 403** (2026-10-05).
 - **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
   single-character names outside loops and short callbacks.
+
+**PC006, merged 2026-10-11** (PR #14, docs only)
+- **ADR-0007** (Proposed): the agent acts as the requesting employee (confused-deputy protection),
+  never writes, and proposes changes under a closed contract that the UI confirms and executes;
+  includes the confirm-time stale-data check with `@Version` / `If-Match` as the target, the audit
+  event, and three delivery stages. ADR-0002 points to it.
+- **Architecture docs:** five Mermaid UML diagrams in `docs/architecture/uml/` (system context,
+  components, sequences, security, deployment) and `performance-and-scalability.md` (Known,
+  Decided and Open items, with the first measurements: no session is created by HTTP Basic, and
+  authentication costs about 65 to 80 ms per request locally).
+- `system-overview.md` moved to `docs/architecture/`.
 
 **PC004, merged 2026-10-10** (PR #13; 221 backend tests, 112 UI tests)
 - **Sort:** `GET /v2/owners` takes `sort` (`id` or `lastName`) and `direction` (`asc` or `desc`);
@@ -79,16 +91,11 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC006, ADR-0007 and the architecture docs** (PR #14, open, docs only). ADR-0007 is Proposed.
-   It decides that the agent acts as the requesting employee and has no write path, so **no new
-   authority role is needed** (this replaces the earlier plan for a read-only agent role). The AI
-   review comment is posted; two review items are fixed on the branch.
-2. **PC007, owners Name sort tooltip** (local branch, one commit). Push and open the PR after
-   PC006 merges.
-3. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
-4. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
+1. **PC007, owners Name sort tooltip** (PR #15, open). Post the AI review comment, then merge.
+2. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
+3. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
    Backlog).
-5. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
+4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
    1. List the screens needed to cover the API use cases.
    2. Build the screens one at a time (Add pet, Edit pet, Add visit, Vets list, and so on).
    3. Connect the screens to the API.
@@ -161,7 +168,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 **Security**
 - `ROLE_ADMIN` outranks `OWNER_ADMIN` and `VET_ADMIN` (ADR-0006).
 - Denied authorization returns 403, not 500.
-- ADR-0007 (Proposed, PR #14): the agent acts as the requesting employee and never writes; a
+- ADR-0007 (status Proposed, on `main` since PR #14): the agent acts as the requesting employee and never writes; a
   proposal is a closed contract (one operation to start); the UI executes confirmed writes; the
   audit event is structured logging, with the "AI-assisted" mark treated as a claim, not proof.
 - Never put credentials in `VITE_*` variables; owner data is held in memory only; only the
