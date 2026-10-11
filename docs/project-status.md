@@ -194,7 +194,8 @@ past about ten items, move it to GitHub Issues and link them here.
 - **`PUT /owners/{id}` spec and behaviour disagree.** `openapi.yml` documents 200 with an `Owner`
   body; the controller answers 204 (a body on a 204 is dropped) and the tests assert 204. Found
   while reviewing PC006. Decide which is right (the UI already does not use the body) and align
-  the spec, or change the controller and tests. Not scheduled.
+  the spec, or change the controller and tests. **Deferred on purpose (2026-10-11): settle it when
+  ADR-0007 is implemented**, since the confirmed-write flow in the UI is what depends on it.
 - **Show the server's field messages in the forms.** A 400 from the API shows only "The request
   contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
   reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not
