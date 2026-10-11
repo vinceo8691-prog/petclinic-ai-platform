@@ -4,7 +4,7 @@ Date: 2026-09-30
 
 ## Status
 
-Accepted
+Accepted. Amended by [ADR-0007](0007-ai-agent-acts-on-behalf-of-the-employee.md): the agent acts as the requesting employee and never writes; the UI executes confirmed writes.
 
 ## Context
 

@@ -7,7 +7,7 @@
 ## Checklist
 
 - [ ] Tests added or updated for new functionality
-- [ ] Docs updated where behavior or decisions changed (docs/ui, docs/system-overview.md, an ADR)
+- [ ] Docs updated where behavior or decisions changed (docs/ui, docs/architecture/system-overview.md, an ADR)
 - [ ] Naming guideline followed: no single-character names except loop indices and short callbacks
 - [ ] No new dependencies, or each one is explained below
 - [ ] Security implications considered (authentication, authorization, secrets, personal data)
