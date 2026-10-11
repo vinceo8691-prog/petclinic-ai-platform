@@ -34,7 +34,7 @@ and in the diagrams if they are wrong.
    identity provider such as Cognito, not yet decided). See
    [ADR-0007](../../adr/0007-ai-agent-acts-on-behalf-of-the-employee.md).
 3. **The agent never writes.** It returns a proposal; the UI shows the exact change and executes
-   the confirmed write with the employee's credentials (ADR-0007, status Proposed).
+   the confirmed write with the employee's credentials (ADR-0007, Accepted).
 4. **Database** on AWS is RDS PostgreSQL (the `postgres` Spring profile exists).
 5. **Routing**: one public ALB with path rules (`/petclinic/*` to the API, `/agent/*` to the
    agent), reached through CloudFront; the UI is served from S3 by the same distribution.

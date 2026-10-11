@@ -39,7 +39,7 @@ start of each week and replace the sections below; older weeks stay in git histo
   single-character names outside loops and short callbacks.
 
 **PC006, merged 2026-10-11** (PR #14, docs only)
-- **ADR-0007** (Proposed): the agent acts as the requesting employee (confused-deputy protection),
+- **ADR-0007** (Accepted 2026-10-11): the agent acts as the requesting employee (confused-deputy protection),
   never writes, and proposes changes under a closed contract that the UI confirms and executes;
   includes the confirm-time stale-data check with `@Version` / `If-Match` as the target, the audit
   event, and three delivery stages. ADR-0002 points to it.
@@ -168,7 +168,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 **Security**
 - `ROLE_ADMIN` outranks `OWNER_ADMIN` and `VET_ADMIN` (ADR-0006).
 - Denied authorization returns 403, not 500.
-- ADR-0007 (status Proposed, on `main` since PR #14): the agent acts as the requesting employee and never writes; a
+- ADR-0007 (Accepted 2026-10-11; on `main` since PR #14): the agent acts as the requesting employee and never writes; a
   proposal is a closed contract (one operation to start); the UI executes confirmed writes; the
   audit event is structured logging, with the "AI-assisted" mark treated as a claim, not proof.
 - Never put credentials in `VITE_*` variables; owner data is held in memory only; only the
