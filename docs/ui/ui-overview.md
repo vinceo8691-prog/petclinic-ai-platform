@@ -223,11 +223,6 @@ exists.
   telephone), so this is rarely reached.
 - **Add pet and Add visit** are not built yet, so Owner details shows pets and visits but
   cannot add them.
-- ⚠️ **Deleting an owner who has pets fails** because of a backend bug: `Pet.type` is mapped with
-  `CascadeType.ALL`, so the delete tries to remove a shared pet type and the database rejects it
-  (the API answers 404 "data constraint violation"; nothing is lost). The UI shows that message in
-  the dialog. Owners without pets delete fine. Fix is in the backend, on its own branch; see
-  [screen-mapping.md](screen-mapping.md).
 - **Performance note:** the paged owners endpoint loads each owner's pets with a separate
   query (eager fetch), about 21 queries per 20-row page. Acceptable at clinic scale; known
   and deliberately left alone for now.

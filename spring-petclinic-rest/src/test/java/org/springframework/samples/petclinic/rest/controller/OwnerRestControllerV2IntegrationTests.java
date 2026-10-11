@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.rest.controller;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -38,6 +40,9 @@ class OwnerRestControllerV2IntegrationTests {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private MockMvc mockMvc;
 
@@ -277,5 +282,93 @@ class OwnerRestControllerV2IntegrationTests {
     void updatingAnOwnerWithATenDigitTelephoneSucceeds() throws Exception {
         this.mockMvc.perform(put("/api/owners/1").contentType(MediaType.APPLICATION_JSON).content(ownerJson("6085551234")))
             .andExpect(status().isNoContent());
+    }
+
+    // Deleting an owner removes their pets and visits, never the pet types the pets share with other pets.
+    // The tests flush explicitly: inside this rolled-back transaction a constraint violation would otherwise
+    // only surface at the next query, and the 404 mapping for data-integrity errors would look like "not found".
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void deletingAnOwnerWhoHasPetsRemovesThePetsAndVisitsButKeepsEveryPetType() throws Exception {
+        // Jean Coleman (owner 6): cats Samantha and Max (pets 7 and 8), with visits; Leo (1) and Sly (13) are cats too.
+        this.mockMvc.perform(delete("/api/owners/6"))
+            .andExpect(status().isNoContent());
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        this.mockMvc.perform(get("/api/owners/6").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+        this.mockMvc.perform(get("/api/pets/7").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+        this.mockMvc.perform(get("/api/pets/8").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+        this.mockMvc.perform(get("/api/pettypes").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(6));
+        this.mockMvc.perform(get("/api/pets/1").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.type.name").value("cat"));
+        this.mockMvc.perform(get("/api/pets/13").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.type.name").value("cat"));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void deletingAnOwnerWhoHasASinglePetStillKeepsItsPetType() throws Exception {
+        // George Franklin (owner 1) has Leo, a cat; other cats exist.
+        this.mockMvc.perform(delete("/api/owners/1"))
+            .andExpect(status().isNoContent());
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        this.mockMvc.perform(get("/api/pettypes/1").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("cat"));
+        this.mockMvc.perform(get("/api/pets/7").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.type.name").value("cat"));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void addingAPetNeverChangesOrAddsAPetType() throws Exception {
+        // The request names the existing type 2 ("dog") with a different name: the stored type wins and
+        // no row is created.
+        this.mockMvc.perform(post("/api/owners/1/pets").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"name":"Rex","birthDate":"2020-01-01","type":{"id":2,"name":"hacked"}}
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.type.id").value(2))
+            .andExpect(jsonPath("$.type.name").value("dog"));
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        this.mockMvc.perform(get("/api/pettypes").accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.length()").value(6));
+        this.mockMvc.perform(get("/api/pettypes/2").accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.name").value("dog"));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void changingAPetsTypeLeavesBothPetTypesInPlace() throws Exception {
+        // Leo (pet 1) goes from cat (1) to dog (2).
+        this.mockMvc.perform(put("/api/owners/1/pets/1").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"name":"Leo","birthDate":"2010-09-07","type":{"id":2,"name":"dog"}}
+                    """))
+            .andExpect(status().isNoContent());
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        this.mockMvc.perform(get("/api/pets/1").accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.type.id").value(2));
+        this.mockMvc.perform(get("/api/pettypes").accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.length()").value(6));
+        this.mockMvc.perform(get("/api/pettypes/1").accept(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.name").value("cat"));
     }
 }

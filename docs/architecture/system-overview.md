@@ -40,7 +40,7 @@ JPA entities under `model/`:
 
 - **Owner** (extends `Person`) — has many **Pet**s (`cascade = ALL`, eager fetch)
 - **Pet** (extends `NamedEntity`) — belongs to one **Owner**, has one **PetType**
-  (`cascade = ALL`), has many **Visit**s (`cascade = ALL`, eager fetch)
+  (no cascade: a shared lookup row), has many **Visit**s (`cascade = ALL`, eager fetch)
 - **Visit** — belongs to one **Pet**
 - **PetType** — simple named lookup entity
 - **Vet** (extends `Person`) — many-to-many with **Specialty**, eager fetch
@@ -176,7 +176,9 @@ A few things worth knowing before building on top of this:
 
 - `Owner`/`Pet`/`Visit` are bidirectionally linked with `CascadeType.ALL` and
   eager fetching in both directions — loading an `Owner` always pulls its full
-  pet/visit graph, and deleting one cascades through the others automatically.
+  pet/visit graph, and deleting one cascades through the others automatically
+  (owner to pets to visits). `Pet.type` deliberately does not cascade, so deleting an
+  owner never touches the pet types other pets share.
 - `PetRepositoryImpl` hand-writes JPQL for cascading pet deletes, duplicating
   what the entity-level cascade is already supposed to do.
 - `OwnerRestControllerV1`/`PetRestControllerV1` (v1) and `OwnerRestControllerV2`/

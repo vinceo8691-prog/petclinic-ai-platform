@@ -34,7 +34,9 @@ public class Pet extends NamedEntity {
     @Column(name = "birth_date", columnDefinition = "DATE")
     private LocalDate birthDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // No cascade: a PetType is a shared lookup row. Cascading REMOVE from the pet made deleting an owner try to
+    // delete the pet type that other pets still use. Pet types are saved and deleted through PetTypeService.
+    @ManyToOne
     @JoinColumn(name = "type_id")
     private PetType type;
 

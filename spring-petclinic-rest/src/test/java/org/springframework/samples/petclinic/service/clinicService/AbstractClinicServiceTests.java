@@ -504,15 +504,74 @@ abstract class AbstractClinicServiceTests {
 
     @Test
     @Transactional
-    void shouldDeleteOwner(){
-    	Owner owner = this.ownerService.findOwnerById(1);
+    void shouldDeleteOwnerWithTheirPetsAndVisits(){
+        // Jean Coleman (owner 6) has two cats, Samantha and Max (pets 7 and 8), with two visits each.
+        Owner owner = this.ownerService.findOwnerById(6);
+        assertThat(owner.getPets()).hasSize(2);
+
         this.ownerService.deleteOwner(owner);
-        try {
-        	owner = this.ownerService.findOwnerById(1);
-		} catch (Exception e) {
-			owner = null;
-		}
-        assertThat(owner).isNull();
+        // Flush so a constraint violation surfaces here instead of being hidden until the rollback.
+        flushChanges();
+        clearCache();
+
+        assertThat(this.ownerService.findOwnerById(6)).isNull();
+        assertThat(this.petService.findPetById(7)).isNull();
+        assertThat(this.petService.findPetById(8)).isNull();
+        assertThat(this.visitService.findVisitsByPetId(7)).isEmpty();
+        assertThat(this.visitService.findVisitsByPetId(8)).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void shouldKeepPetTypesAndOtherPetsOfTheSameTypeWhenAnOwnerIsDeleted(){
+        // Both of Jean Coleman's pets are cats, a type that Leo (pet 1) and Sly (pet 13) share.
+        int petTypesBefore = this.petTypeService.findAllPetTypes().size();
+        Owner owner = this.ownerService.findOwnerById(6);
+
+        this.ownerService.deleteOwner(owner);
+        flushChanges();
+        clearCache();
+
+        assertThat(this.petTypeService.findAllPetTypes()).hasSize(petTypesBefore);
+        assertThat(this.petTypeService.findPetTypeById(1).getName()).isEqualTo("cat");
+        assertThat(this.petService.findPetById(1).getType().getName()).isEqualTo("cat");
+        assertThat(this.petService.findPetById(13).getType().getName()).isEqualTo("cat");
+    }
+
+    @Test
+    @Transactional
+    void shouldDeleteOwnerWithoutPets(){
+        Owner owner = new Owner();
+        owner.setFirstName("Pat");
+        owner.setLastName("Petless");
+        owner.setAddress("1 Main St.");
+        owner.setCity("Madison");
+        owner.setTelephone("6085550000");
+        this.ownerService.saveOwner(owner);
+        int ownerId = owner.getId();
+
+        this.ownerService.deleteOwner(owner);
+        flushChanges();
+        clearCache();
+
+        assertThat(this.ownerService.findOwnerById(ownerId)).isNull();
+    }
+
+    @Test
+    @Transactional
+    void shouldKeepThePetTypeWhenAPetIsSavedWithADifferentType(){
+        Pet pet = this.petService.findPetById(1);
+        PetType dog = this.petTypeService.findPetTypeById(2);
+        int petTypesBefore = this.petTypeService.findAllPetTypes().size();
+
+        pet.setType(dog);
+        this.petService.savePet(pet);
+        flushChanges();
+        clearCache();
+
+        assertThat(this.petService.findPetById(1).getType().getId()).isEqualTo(2);
+        assertThat(this.petTypeService.findAllPetTypes()).hasSize(petTypesBefore);
+        assertThat(this.petTypeService.findPetTypeById(2).getName()).isEqualTo("dog");
     }
 
     @Test
@@ -662,4 +721,6 @@ abstract class AbstractClinicServiceTests {
     }
 
     void clearCache() {}
+
+    void flushChanges() {}
 }

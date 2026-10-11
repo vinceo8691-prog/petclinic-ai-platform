@@ -20,9 +20,10 @@ start of each week and replace the sections below; older weeks stay in git histo
 - **PC006** (ADR-0007 on how the AI agent is authorized, the architecture UML diagrams and the
   performance document) is on `main` (PR #14, merged 2026-10-11), docs only. `system-overview.md`
   now lives in `docs/architecture/`.
-- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is open
-  as PR #15 on `feature/PC007_owners_sort_tooltip`, waiting for the AI review comment and the
-  merge.
+- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is on
+  `main` (PR #15, merged 2026-10-11), together with ADR-0007's acceptance.
+- **PC005** (owner delete fix) is open as a PR from `feature/PC005_owner-delete-fix`, waiting for
+  the AI review comment and the merge.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -91,9 +92,19 @@ start of each week and replace the sections below; older weeks stay in git histo
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC007, owners Name sort tooltip** (PR #15, open). Post the AI review comment, then merge.
-2. **PC005 ⚠️, owner delete fix.** Remove the cascade from `Pet.type` in the backend, with tests.
-3. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
+1. **PC005, owner delete fix** (PR open from `feature/PC005_owner-delete-fix`; 231 backend tests).
+   Post the AI review comment, then merge.
+   - Removed the cascade from `Pet.type`. Deleting an owner removes their pets and visits and
+     leaves every pet type alone.
+   - **Also changed:** `PetTypeRepositoryImpl.delete` no longer calls `em.remove` on the pet type
+     first. That call only worked because the `Pet.type` cascade quietly re-persisted the type
+     when the next bulk statement auto-flushed (the first JPQL `executeUpdate()` after loading
+     the pets); without the cascade Hibernate rejects pets that point at a removed type at that
+     flush. The explicit JPQL deletes already did the real work, so behaviour is unchanged.
+   - **Tests:** the old `shouldDeleteOwner` passed while the bug existed, because it swallowed the
+     exception. It is replaced by four tests that flush and assert (HSQLDB and H2), and four
+     end-to-end tests on H2 cover owner delete, add pet and change a pet's type.
+2. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
    Backlog).
 4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
    1. List the screens needed to cover the API use cases.
@@ -110,10 +121,6 @@ In the order we agreed, one branch at a time, each merged and approved before th
 
 ## Blockers and risks
 
-- **Deleting an owner who has pets fails** (backend bug, reproduced 2026-10-08). `Pet.type` is
-  mapped `CascadeType.ALL`, so the delete tries to remove a shared pet type and the database
-  rejects it. The API answers 404 "data constraint violation" and no data is lost. Owners with
-  no pets delete fine. Blocked until PC005; the UI shows the server's message in the dialog.
 - **No login flow is designed.** Security is off by default and the UI sends no credentials.
   This blocks any non-local deployment and needs its own ADR. It is planned for after the UI
   screens are built (see the planned flow above). ADR-0007 does not yet say where the browser
@@ -148,7 +155,7 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - Three layers per feature: plain `api/` functions, one hooks file, then components.
 - Extract a shared component only after its second or third use.
 - API types are hand-written for now. Generating them from `openapi.yml` with `openapi-typescript`
-  (types only) is planned after PC005 and the ADR branch; see the Backlog.
+  (types only) is planned after PC005; see the Backlog.
 
 **Owner UI**
 - Add owner and Edit owner are their own pages, not dialogs.
@@ -210,6 +217,18 @@ past about ten items, move it to GitHub Issues and link them here.
 - **PostgreSQL and MySQL are not exercised by the tests.** The owner queries use portable JPQL, but
   only H2 and HSQLDB are verified. A Testcontainers-based test would close the gap. Also consider a
   functional index on `lower(last_name)` for PostgreSQL (`LOWER()` stops the plain index being used).
+- **Refuse to delete a pet type that pets still use** (future backend fix, not scheduled; added
+  2026-10-11). Today `DELETE /pettypes/{id}` deletes every pet of that type and all their visits
+  (`PetTypeRepositoryImpl.delete` runs the JPQL deletes), and `shouldDeletePetType` asserts that
+  by deleting type 1 (cat), which four seed pets use. Wanted: if any pet references the type,
+  answer an error and delete nothing; an unused type still deletes. ⚠️ Assumptions to confirm
+  when it is picked up: the status is 409 Conflict with a `ProblemDetail` that says how many pets
+  use it (this ties in with the open question of whether data-integrity errors should stay 404);
+  `openapi.yml` gains a 409 response; `shouldDeletePetType` and `PetTypeRestControllerV1Tests`
+  change to the new rule; there is no way to force the delete (a pet type screen, if built, would
+  tell the user to move or remove the pets first). Do it after PC005, which removed the
+  `Pet.type` cascade this behaviour sits next to and dropped the `em.remove` call in
+  `PetTypeRepositoryImpl.delete`; the guard replaces that method's delete-everything logic.
 - **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
   timing: a small PR before Add pet, when the type count grows (the CI freshness check is now
   possible, since PC003 is merged). Plan: add
