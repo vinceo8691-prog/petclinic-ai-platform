@@ -10,11 +10,11 @@ architecture and `docs/adr/` for the reasoning behind specific decisions.
 |---|---|---|
 | PetClinic REST API | `spring-petclinic-rest` | Fully implemented |
 | PetClinic AI Agent | `petclinic-ai-agent` | Empty Spring Boot scaffold, no endpoints or AI logic yet |
-| PetClinic UI | `petclinic-ui` | App shell, Owners page and Add owner page (calls `spring-petclinic-rest`); see [docs/ui](ui/ui-overview.md) |
+| PetClinic UI | `petclinic-ui` | App shell, Owners page and Add owner page (calls `spring-petclinic-rest`); see [docs/ui](../ui/ui-overview.md) |
 
 Only `spring-petclinic-rest` does any real work today. The other two exist as
 buildable skeletons so the monorepo layout and tooling are in place before
-functionality is added (see [ADR-0001](adr/0001-use-a-monorepo.md)).
+functionality is added (see [ADR-0001](../adr/0001-use-a-monorepo.md)).
 
 Per `CLAUDE.md`, the intended call directions once the other two are built out are:
 
@@ -25,7 +25,7 @@ petclinic-ai-agent ──▶ spring-petclinic-rest   (REST only — never the da
 ```
 
 Nothing currently violates this: `petclinic-ui` calls only `spring-petclinic-rest`, and
-`petclinic-ai-agent` calls nothing yet. See [ADR-0002](adr/0002-separate-ai-agent-from-ui-and-rest-api.md)
+`petclinic-ai-agent` calls nothing yet. See [ADR-0002](../adr/0002-separate-ai-agent-from-ui-and-rest-api.md)
 for why the agent is a separate deployable.
 
 ## PetClinic REST API (`spring-petclinic-rest`)
@@ -160,7 +160,7 @@ anything), an Owners page (paged list from `GET /v2/owners`, searchable and sort
 name), Add and Edit owner pages (`POST` and `PUT /owners`) and an Owner details page with Delete.
 It does not call
 `petclinic-ai-agent` yet. Screens, navigation, endpoint mapping and visual conventions
-are documented in [docs/ui](ui/ui-overview.md).
+are documented in [docs/ui](../ui/ui-overview.md).
 
 ## Infrastructure
 
