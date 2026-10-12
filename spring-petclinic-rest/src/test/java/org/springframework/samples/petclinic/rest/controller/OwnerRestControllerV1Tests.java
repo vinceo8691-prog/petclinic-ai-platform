@@ -273,7 +273,7 @@ class OwnerRestControllerV1Tests {
         String newOwnerAsJSON = mapper.writeValueAsString(updatedOwnerDto);
         this.mockMvc.perform(put("/api/owners/" + ownerId)
                 .content(newOwnerAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(content().contentType("application/json"))
+            .andExpect(content().string(""))
             .andExpect(status().isNoContent());
 
         this.mockMvc.perform(get("/api/owners/" + ownerId)
@@ -301,7 +301,7 @@ class OwnerRestControllerV1Tests {
         String newOwnerAsJSON = mapper.writeValueAsString(updatedOwnerDto);
         this.mockMvc.perform(put("/api/owners/" + ownerId)
                 .content(newOwnerAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(content().contentType("application/json"))
+            .andExpect(content().string(""))
             .andExpect(status().isNoContent());
 
         this.mockMvc.perform(get("/api/owners/" + ownerId)

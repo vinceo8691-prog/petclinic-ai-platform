@@ -27,14 +27,12 @@ fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 
 **Open or planned work**
 
-- **PC009** (security ADR enhancements) is open as PR #17 from
-  `feature/PC009_security-ADR-enhancements`, docs only, waiting for the AI review comment and
-  the merge.
-- **PC010** (the `openapi.yml` update responses document a body the API never sends; the spec
-  should say 204) has a branch at `main`, `feature/PC010_body_204_openapi_fix`, and is planned
-  after PC009 and before PC008.
+- **PC010** (the `openapi.yml` update and delete responses documented a body the API never
+  sends; the spec now says 204) is implemented on `feature/PC010_body_204_openapi_fix`,
+  with its PR open, awaiting the AI review comment and the merge. It runs before PC008.
 - **PC008** (generate the TypeScript API types from `openapi.yml`) has a branch at `main`,
-  `feature/PC008_api-types-generation`, and is planned after PC010. Three questions are open:
+  `feature/PC008_api-types-generation`, and is planned after PC010. It also corrects the five
+  `POST` specs from `200` to `201` (see the Backlog). Three questions are open:
   the generated file's location (`src/api/schema.d.ts`), keeping `readonly`, and the CI
   freshness check as a step in the existing UI job.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
@@ -60,11 +58,9 @@ Nothing merged yet. Work done and waiting for review in PC009 (PR #17):
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC009, security ADR enhancements** (PR #17, docs only, open). Post the AI review comment,
-   then merge it first.
-2. **PC010, body-on-204 `openapi.yml` fix** (`feature/PC010_body_204_openapi_fix`): make the
-   spec say 204 No Content for the six update endpoints and drop the body from the controllers,
-   with the existing tests as the guard. See the Backlog entry for the scope.
+1. **PC009, security ADR enhancements** (PR #17, docs only): merged.
+2. **PC010, body-on-204 `openapi.yml` fix** (`feature/PC010_body_204_openapi_fix`, PR open): the spec says 204 No Content for the six update and six delete endpoints,
+   and the controllers no longer build a body. See the Backlog entry.
 3. **PC008, generate the TypeScript API types** from `openapi.yml` (before Add pet; see the
    Backlog for the plan and the three open questions above). Runs after PC010 so the generated
    update responses are correct.
@@ -185,16 +181,20 @@ past about ten items, move it to GitHub Issues and link them here.
   updates, not security fixes, so the backend stays on springdoc 3.1.0, refactor-first 0.9.0 and
   the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
   Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
-- **Update endpoints document a body that the API never sends (PC010, planned).**
-  `openapi.yml` documents `200` with a body for `PUT /owners/{id}`; the controller builds a body
-  with `204 No Content` (the container drops it) and the tests assert 204. The same pattern is
-  in six controllers (`PUT` for owners, pets, pet types, specialties, vets and visits); only the
-  owner spec has been compared so far, so the first step is to check each of the other five.
-  **Decided 2026-10-12: option A, the spec says 204** (it matches the behaviour, the tests and
-  the UI, which treats the update as `Promise<void>`); the controllers stop building a body.
-  Done as its own PR before PC008, because PC008 generates types from this spec. This replaces
-  the earlier deferral to the ADR-0007 implementation. Related: the optimistic-concurrency work
-  later adds an `ETag` header to these responses.
+- **Update and delete endpoints documented a body that the API never sends (PC010,
+  PR open).** `openapi.yml` documented `200` with a body for the six `PUT`
+  endpoints (owners, pets, pet types, specialties, vets, visits) and the six `DELETE` endpoints,
+  while the controllers answer `204 No Content` (the container dropped the body they built) and
+  the tests assert 204. **Decided 2026-10-12: option A, the spec says 204**, and the scope
+  includes the deletes because the comparison found the same drift there. The spec responses are
+  now `204` with no body, the twelve controller methods return `ResponseEntity<Void>`, and the
+  seven update tests assert an empty body instead of a JSON content type. Done as its own PR
+  before PC008, because PC008 generates types from this spec. Related: the optimistic-concurrency
+  work later adds an `ETag` header to these responses.
+- **POST specs for pet types, visits, specialties, vets and users say `200` but the controllers
+  answer `201`** (found during PC010, not fixed there). The owner, pet and visit-under-owner
+  POSTs already say 201. Same kind of spec-only fix. **Decided 2026-10-12: done as part of
+  PC008**, in the same branch and before the types are generated.
 - **Show the server's field messages in the forms.** A 400 from the API shows only "The request
   contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
   reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not

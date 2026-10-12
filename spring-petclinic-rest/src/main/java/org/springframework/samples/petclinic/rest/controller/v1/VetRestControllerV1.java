@@ -92,7 +92,7 @@ public class VetRestControllerV1 implements VetsApi {
 
     @PreAuthorize("hasRole(@roles.VET_ADMIN)")
     @Override
-    public ResponseEntity<VetDto> updateVet(Integer vetId,VetDto vetDto)  {
+    public ResponseEntity<Void> updateVet(Integer vetId,VetDto vetDto)  {
         Vet currentVet = this.vetService.findVetById(vetId);
         if (currentVet == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -108,13 +108,13 @@ public class VetRestControllerV1 implements VetsApi {
             currentVet.setSpecialties(vetSpecialities);
         }
         this.vetService.saveVet(currentVet);
-        return new ResponseEntity<>(vetMapper.toVetDto(currentVet), HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasRole(@roles.VET_ADMIN)")
     @Transactional
     @Override
-    public ResponseEntity<VetDto> deleteVet(Integer vetId) {
+    public ResponseEntity<Void> deleteVet(Integer vetId) {
         Vet vet = this.vetService.findVetById(vetId);
         if (vet == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

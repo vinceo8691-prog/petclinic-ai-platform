@@ -311,12 +311,8 @@ paths:
               $ref: '#/components/schemas/OwnerFields'
         required: true
       responses:
-        200:
+        204:
           description: Update successful.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Owner'
         400:
           description: Bad request.
           content:
@@ -353,17 +349,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Owner details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Owner'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:
@@ -775,17 +762,8 @@ paths:
               $ref: '#/components/schemas/PetType'
         required: true
       responses:
-        200:
-          description: Pet type details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PetType'
+        204:
+          description: Update successful.
         304:
           description: Not modified.
           headers:
@@ -828,17 +806,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Pet type details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PetType'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:
@@ -1031,17 +1000,8 @@ paths:
               $ref: '#/components/schemas/Pet'
         required: true
       responses:
-        200:
-          description: Pet details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
+        204:
+          description: Update successful.
         304:
           description: Not modified.
           headers:
@@ -1084,17 +1044,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Pet details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:
@@ -1282,17 +1233,8 @@ paths:
               $ref: '#/components/schemas/VisitFields'
         required: true
       responses:
-        200:
-          description: Visit details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Visit'
+        204:
+          description: Update successful.
         304:
           description: Not modified.
           headers:
@@ -1335,17 +1277,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Visit details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Visit'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:
@@ -1533,17 +1466,8 @@ paths:
               $ref: '#/components/schemas/Specialty'
         required: true
       responses:
-        200:
-          description: Specialty details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Specialty'
+        204:
+          description: Update successful.
         304:
           description: Not modified.
           headers:
@@ -1586,17 +1510,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Specialty details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Specialty'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:
@@ -1785,17 +1700,8 @@ paths:
               $ref: '#/components/schemas/Vet'
         required: true
       responses:
-        200:
-          description: Pet type details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vet'
+        204:
+          description: Update successful.
         304:
           description: Not modified.
           headers:
@@ -1838,17 +1744,8 @@ paths:
             minimum: 0
             example: 1
       responses:
-        200:
-          description: Vet details found and returned.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Vet'
+        204:
+          description: Deletion successful.
         304:
           description: Not modified.
           headers:

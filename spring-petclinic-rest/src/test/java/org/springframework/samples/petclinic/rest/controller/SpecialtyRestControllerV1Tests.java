@@ -170,7 +170,7 @@ class SpecialtyRestControllerV1Tests {
         String newSpecialtyAsJSON = mapper.writeValueAsString(specialtyMapper.toSpecialtyDto(newSpecialty));
     	this.mockMvc.perform(put("/api/specialties/2")
     		.content(newSpecialtyAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-        	.andExpect(content().contentType("application/json"))
+        	.andExpect(content().string(""))
         	.andExpect(status().isNoContent());
 
     	this.mockMvc.perform(get("/api/specialties/2")

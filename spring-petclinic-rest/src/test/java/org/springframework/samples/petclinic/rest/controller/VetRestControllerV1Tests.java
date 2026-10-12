@@ -176,7 +176,7 @@ class VetRestControllerV1Tests {
         String newVetAsJSON = mapper.writeValueAsString(vetMapper.toVetDto(newVet));
     	this.mockMvc.perform(put("/api/vets/1")
     		.content(newVetAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-        	.andExpect(content().contentType("application/json"))
+        	.andExpect(content().string(""))
         	.andExpect(status().isNoContent());
 
     	this.mockMvc.perform(get("/api/vets/1")
