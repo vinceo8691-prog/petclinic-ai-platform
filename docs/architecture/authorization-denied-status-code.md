@@ -79,4 +79,11 @@ controller advice.
   reproduced the bug, then confirmed the fix.
 - `RoleHierarchyTests.ownerAdminIsStillDeniedTheVetAdminGatedEndpoint` was
   updated from asserting the old (wrong) 500 to asserting 403.
-- Full suite (15 test classes) passes.
+- Full suite (15 test classes) passed when this was fixed.
+
+## Follow-up
+
+How authentication and authorization failures should behave once the platform uses tokens and
+the agent-origin cap exists (401 versus 403, one path, one body) is decided in
+[ADR-0008](../adr/0008-security-failures-answer-401-or-403-as-problemdetail.md). That ADR does
+not describe a live defect: the status code described here has been correct since this fix.

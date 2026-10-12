@@ -54,12 +54,13 @@ sequenceDiagram
     participant DB as Database
 
     Staff->>UI: "Find owners named Davis and update George's phone"
-    UI->>Agent: POST chat message with the employee's credentials
+    Note over UI,Agent: The UI exchanges the employee's token for a delegated read-only token (act = agent) at the issuer
+    UI->>Agent: POST chat message with the delegated token only
     Agent->>LLM: Prompt and read-only tool definitions
     LLM-->>Agent: Tool call searchOwners(lastName="Davis")
 
     Note over Agent,API: Read, made as the employee, so the backend applies the employee's roles
-    Agent->>API: GET /api/v2/owners?lastName=Davis (employee credentials)
+    Agent->>API: GET /api/v2/owners?lastName=Davis (delegated read-only token)
     alt employee lacks OWNER_ADMIN
         API-->>Agent: 403 ProblemDetail
         Agent-->>UI: Not permitted
@@ -83,12 +84,12 @@ sequenceDiagram
         Staff->>UI: Reject
     else Staff confirms
         Staff->>UI: Confirm
-        UI->>API: GET /api/owners/1 (confirm-time check)
+        UI->>API: GET /api/owners/1 (confirm-time check; replaced by If-Match and 412 later)
         API-->>UI: Current owner
         alt owner changed since review
             UI-->>Staff: Owner changed, review the new values
         else unchanged
-            UI->>API: PUT /api/owners/1 with the displayed payload (employee credentials)
+            UI->>API: PUT /api/owners/1 with the displayed payload (employee token)
             API->>API: Authenticate, @PreAuthorize hasRole OWNER_ADMIN, validate
             API->>DB: Update
             API-->>UI: 204

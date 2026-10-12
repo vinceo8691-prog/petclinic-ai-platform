@@ -1,6 +1,6 @@
 # System Overview
 
-Status as of 2026-10-02. This describes the system as it actually exists in the
+Status as of 2026-10-11. This describes the system as it actually exists in the
 repository today, not the target end-state — see `CLAUDE.md` for the intended
 architecture and `docs/adr/` for the reasoning behind specific decisions.
 
@@ -10,11 +10,11 @@ architecture and `docs/adr/` for the reasoning behind specific decisions.
 |---|---|---|
 | PetClinic REST API | `spring-petclinic-rest` | Fully implemented |
 | PetClinic AI Agent | `petclinic-ai-agent` | Empty Spring Boot scaffold, no endpoints or AI logic yet |
-| PetClinic UI | `petclinic-ui` | App shell, Owners page and Add owner page (calls `spring-petclinic-rest`); see [docs/ui](../ui/ui-overview.md) |
+| PetClinic UI | `petclinic-ui` | App shell, Owners list (search, sort, paging), Add, Edit and Delete owner, Owner details (calls `spring-petclinic-rest`); see [docs/ui](../ui/ui-overview.md) |
 
-Only `spring-petclinic-rest` does any real work today. The other two exist as
-buildable skeletons so the monorepo layout and tooling are in place before
-functionality is added (see [ADR-0001](../adr/0001-use-a-monorepo.md)).
+`spring-petclinic-rest` is fully implemented and `petclinic-ui` covers the owner screens.
+`petclinic-ai-agent` is still a buildable skeleton, so the monorepo layout and tooling are
+in place before its functionality is added (see [ADR-0001](../adr/0001-use-a-monorepo.md)).
 
 Per `CLAUDE.md`, the intended call directions once the other two are built out are:
 
@@ -95,14 +95,19 @@ Entities are converted to/from DTOs by MapStruct-generated mappers
 
 ### Authorization
 
-Method-level `@PreAuthorize` annotations are already present on every v1
-controller method (e.g. `hasRole(@roles.OWNER_ADMIN)`, roles defined in
+Method-level `@PreAuthorize` annotations are already present on the controller
+methods of both API versions (36 across 9 controllers, e.g. `hasRole(@roles.OWNER_ADMIN)`; roles defined in
 `security/Roles.java`: `ROLE_OWNER_ADMIN`, `ROLE_VET_ADMIN`, `ROLE_ADMIN`), but
 enforcement is **off by default** — `petclinic.security.enable=false` in
 `application.properties` activates `DisableSecurityConfig`, which permits all
 requests unauthenticated. Setting that property to `true` switches to
 `BasicAuthenticationConfig`: HTTP Basic auth backed by `users`/`roles` tables
-queried directly via JDBC (not through the JPA `User`/`Role` entities).
+queried directly via JDBC (not through the JPA `User`/`Role` entities). A denied check
+answers 403 (see [authorization-denied-status-code.md](authorization-denied-status-code.md)).
+How the AI agent is authorized, and what changes when authentication moves to tokens, is
+decided in [ADR-0007](../adr/0007-ai-agent-acts-on-behalf-of-the-employee.md) and
+[ADR-0008](../adr/0008-security-failures-answer-401-or-403-as-problemdetail.md); neither is
+implemented yet.
 
 ### Persistence
 

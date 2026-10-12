@@ -43,8 +43,8 @@ Related: [system-overview](system-overview.md), [deployment diagram](uml/05-depl
 |---|---|---|
 | `spring-petclinic-rest` and the agent are stateless services, so concurrent requests need no coordination between instances | Known | No session state; `open-in-view` is off |
 | The backend has no optimistic locking: an owner update is a full replace that overwrites whatever is stored | Known | No `@Version`, no `If-Match`; `updateOwner` sets all five fields |
-| AI-confirmed writes compare the owner with what the employee reviewed before sending the PUT; the remaining millisecond window is accepted | Decided | ADR-0007 decision 5 |
-| Optimistic concurrency (`@Version`, `ETag` / `If-Match`, 412 and 428) is the target and gets its own PR | Decided (target; not scheduled) | ADR-0007 decision 5; it also fixes the existing Edit Owner page |
+| AI-confirmed writes compare the owner with what the employee reviewed before sending the PUT; the remaining millisecond window is accepted for the demonstration only, and is replaced by the `If-Match` precondition once optimistic concurrency exists | Decided (fallback) | ADR-0007 decision 5 |
+| Optimistic concurrency (`@Version`, `ETag` / `If-Match`, 412 and 428) is a production-readiness gate on every updatable resource and gets its own PR | Decided (gate; not scheduled) | ADR-0007 decision 5; it also fixes the existing Edit Owner page |
 | Agent conversation state is scoped to the requesting user and never shared between employees | Decided | ADR-0007 decision 7 |
 | Where agent conversation state lives once more than one agent task runs | Open | Needs the agent's actual state model; in-process memory is enough for one task |
 | Database connection pool size and the transaction isolation behaviour under concurrent edits | Open | Defaults are in use and untested under concurrent load |
@@ -71,7 +71,7 @@ Related: [system-overview](system-overview.md), [deployment diagram](uml/05-depl
 | The agent cannot corrupt data when it fails: it has no write path, and its proposals are validated and executed by the UI against the backend | Decided | ADR-0007 decisions 3 and 4 |
 | The UI and API keep working when the agent or the model is unavailable, because the UI talks to both separately and the agent is optional | Decided | ADR-0002 |
 | A 403 from the backend on an agent read is relayed to the employee as "not permitted", not retried | Decided | ADR-0007 decision 1 |
-| A stale owner at confirmation blocks the write and shows the new values | Decided | ADR-0007 decision 5 |
+| A stale owner at confirmation blocks the write and shows the new values (a 412 once optimistic concurrency exists) | Decided | ADR-0007 decision 5 |
 | Timeouts for the model and for agent-to-API calls, retries with backoff, and a limit on tool calls per turn | Open | Needs the model provider's behaviour and measured latency |
 | What the assistant shows when the model is slow, rate limited or down | Open | UI design for the assistant panel has not started |
 | API and agent health checks, graceful shutdown and deployment strategy on ECS | Open | Belongs to the infrastructure work; Actuator is on the classpath |

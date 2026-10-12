@@ -1,119 +1,83 @@
 # Project Status
 
-**Week of 2026-10-05 to 2026-10-11**, updated 2026-10-11 (Sunday). Update this file at the
-start of each week and replace the sections below; older weeks stay in git history.
+**Week of 2026-10-12 to 2026-10-18**, updated 2026-10-12 (Monday). Update this file at the
+start of each week and replace the sections below; older weeks stay in git history. The
+previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 
-> ⚠️ **Assumptions to confirm** are marked with ⚠️. The week boundaries (Monday to Sunday) and
-> the PR numbers after PC003 are my assumptions, not decisions.
+> ⚠️ **Assumptions to confirm** are marked with ⚠️. The week boundaries (Monday to Sunday) are
+> my assumption, not a decision. PR numbers are GitHub's own; the PCXXX prefix is our title
+> convention.
 
 ## Where we are
 
-- `main` has the REST backend, the app shell, the Owners list and the Add owner page
-  (PR #3, **PC001_Owner_UI_Screen**, merged 2026-10-08).
-- Owner details, Edit owner and Delete owner are on `main` (PR #4, **PC002_Owner_Details_Screen**,
-  merged 2026-10-10). (#4 is GitHub's own number; PC002 is our title prefix.)
-- CI and repo hygiene are on `main` (PR #5, **PC003_CI_Repo_Enhancements**, squash-merged
-  2026-10-10): root Dependabot config, Backend CI, UI CI and Newman smoke tests on every PR and on
-  pushes to `main`, and a PR template. The `main protection` ruleset is active.
-- **PC004** (last-name sort, case-insensitive search and the telephone fix) is on `main`
-  (PR #13, merged 2026-10-10).
-- **PC006** (ADR-0007 on how the AI agent is authorized, the architecture UML diagrams and the
-  performance document) is on `main` (PR #14, merged 2026-10-11), docs only. `system-overview.md`
-  now lives in `docs/architecture/`.
-- **PC007** (a tooltip on the owners Name sort button that says what the next click does) is on
-  `main` (PR #15, merged 2026-10-11), together with ADR-0007's acceptance.
-- **PC005** (owner delete fix) is open as PR #16 from `feature/PC005_owner-delete-fix`, waiting for
-  the AI review comment and the merge.
+`main` is at PR #16 and has everything below. Nothing has been merged yet this week.
+
+| PR | Title prefix | What it delivered | Merged |
+|---|---|---|---|
+| #3 | PC001 | App shell, Owners list (search, paging, page size), Add owner page, assistant panel preview, the four living docs in `docs/ui/` | 2026-10-08 |
+| #4 | PC002 | Owner details, Edit owner, Delete owner; shared owner form; the 4xx retry rule | 2026-10-10 |
+| #5 | PC003 | CI (backend, UI, Newman) on every PR and on `main`, root Dependabot config, PR template, `main` ruleset | 2026-10-10 |
+| #13 | PC004 | Last-name sort, case-insensitive search, 10-digit telephone rule, 400 instead of 500 for bad input | 2026-10-10 |
+| #14 | PC006 | ADR-0007, ADR-0002 pointer, five Mermaid UML diagrams, performance document; `system-overview.md` moved to `docs/architecture/` | 2026-10-11 |
+| #15 | PC007 | Tooltip on the owners Name sort button; ADR-0007 accepted | 2026-10-11 |
+| #16 | PC005 | Owner delete fix: `Pet.type` no longer cascades; `PetTypeRepositoryImpl.delete` dropped a dead `em.remove` | 2026-10-11 |
+
+Also already on `main` before the PC numbering: the `ROLE_ADMIN` hierarchy (ADR-0006) and the
+fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
+
+**Open or planned work**
+
+- **PC009** (security ADR enhancements) is open as PR #17 from
+  `feature/PC009_security-ADR-enhancements`, docs only, waiting for the AI review comment and
+  the merge.
+- **PC010** (the `openapi.yml` update responses document a body the API never sends; the spec
+  should say 204) has a branch at `main`, `feature/PC010_body_204_openapi_fix`, and is planned
+  after PC009 and before PC008.
+- **PC008** (generate the TypeScript API types from `openapi.yml`) has a branch at `main`,
+  `feature/PC008_api-types-generation`, and is planned after PC010. Three questions are open:
+  the generated file's location (`src/api/schema.d.ts`), keeping `readonly`, and the CI
+  freshness check as a step in the existing UI job.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
 
-**Merged to `main`**
-- **PC001 Owner UI** (PR #3): app shell with header, skip link and focus handling; Owners list
-  (URL-driven search, paging and page size, loading/empty/error states, responsive table);
-  Add owner page; a floating Assistant launcher with a docked right-hand panel (preview only);
-  the four living docs in `docs/ui/`; tests for all of it.
-- **ADMIN role hierarchy** in the backend, so `ROLE_ADMIN` outranks `OWNER_ADMIN` and
-  `VET_ADMIN` (2026-10-05).
-- **Fix for denied `@PreAuthorize` checks returning 500 instead of 403** (2026-10-05).
-- **Development guidelines** added to `CLAUDE.md`: call out security implications, and no
-  single-character names outside loops and short callbacks.
+Nothing merged yet. Work done and waiting for review in PC009 (PR #17):
 
-**PC006, merged 2026-10-11** (PR #14, docs only)
-- **ADR-0007** (Accepted 2026-10-11): the agent acts as the requesting employee (confused-deputy protection),
-  never writes, and proposes changes under a closed contract that the UI confirms and executes;
-  includes the confirm-time stale-data check with `@Version` / `If-Match` as the target, the audit
-  event, and three delivery stages. ADR-0002 points to it.
-- **Architecture docs:** five Mermaid UML diagrams in `docs/architecture/uml/` (system context,
-  components, sequences, security, deployment) and `performance-and-scalability.md` (Known,
-  Decided and Open items, with the first measurements: no session is created by HTTP Basic, and
-  authentication costs about 65 to 80 ms per request locally).
-- `system-overview.md` moved to `docs/architecture/`.
-
-**PC004, merged 2026-10-10** (PR #13; 221 backend tests, 112 UI tests)
-- **Sort:** `GET /v2/owners` takes `sort` (`id` or `lastName`) and `direction` (`asc` or `desc`);
-  last-name sorts ignore case and break ties on first name, then id. The Name column header in the
-  UI cycles A to Z, Z to A, default, with the sort in the URL.
-- **Search:** case-insensitive on both v1 and v2, and `%` and `_` are literal (before, `%` listed
-  every owner and `D_vis` matched `Davis`).
-- **Telephone:** the spec now requires exactly 10 digits, matching the entity; the UI form uses the
-  same rule.
-- **400, not 500:** bad `size`, `page`, `sort` and `direction` values, type mismatches and entity
-  rule violations now answer 400 with the offending field.
-- **Found while testing:** most backend tests run on HSQLDB, whose `last_name` column is
-  case-insensitive, so they could not prove the case-insensitive search. Added `ClinicServiceH2Tests`
-  and made the owner end-to-end tests run on H2 (the default database); with the old queries four
-  H2 tests fail.
-
-**PC003, merged 2026-10-10** (PR #5)
-- Dependabot config moved to the repo root, with monthly grouped updates and at most three open
-  PRs per ecosystem; Backend CI, UI CI and Newman smoke tests (no path filters); a PR template;
-  `mvnw` made executable in git. All checks passed on GitHub, including GitHub's own Dependabot
-  config validation.
-
-**PC002, merged 2026-10-10** (`feature/OwnerDetailsScreen`; 96 UI tests, lint and build pass)
-- **Redesign:** teal page background and artwork, one large rounded card, header with the dog
-  mark and underlined current item, avatars and pet pills in the table, a single View icon per
-  row, light-blue clouds, dog favicon.
-- **Owner details page:** contact panel and a card per pet with its type, birth date and visits.
-- **Edit owner page:** the Add owner form, prefilled, saving with `PUT`.
-- **Delete owner:** icon button on the details page opening a confirmation dialog; on success it
-  returns to the list with a "Deleted owner …" message.
-- **Refactors:** shared `OwnerForm`, `TextField` (replaces the render-prop `FormField`),
-  `OwnerRoute` (shared loader for details and edit), validation now appears after the first
-  submit attempt, not on blur.
-- **Retry rule:** queries no longer retry client errors (4xx), so an unknown owner reports
-  "not found" at once instead of after about seven seconds.
-- **Docs:** the `docs/ui/` files updated for all of the above, including a new Frontend
-  conventions section; ADR-0007 renumbered to ADR-0006 with its references fixed (including
-  comments in three backend files); this status doc.
+- **ADR-0007 amended in place, eight amendments:** no raw credentials through the agent and a
+  token mechanism (amendment 1); one authoritative proposal contract with shared examples
+  (2, and the four refinements in 7); optimistic concurrency as a production-readiness gate
+  (3); audit information versus verified evidence (4); security failures as 401 or 403 (5);
+  two independent triggers for server-side approval records (6); the UI performs the token
+  exchange so the agent never holds a write-capable token (8).
+- **ADR-0008** (Proposed): security failures answer 401 or 403 as `ProblemDetail`, through one
+  path. The 500 defect itself was fixed on 2026-10-05.
+- **ADR-0009** (Placeholder): the login and authentication mechanism, with its open
+  questions, so the login screen stays on the radar.
+- **A consistency pass over all docs**, including correcting ADR-0006's stale "not fixed" note.
+- Branches prepared for PC010 and PC008.
 
 ## Next tasks
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
-1. **PC005, owner delete fix** (PR #16, open; 231 backend tests).
-   Post the AI review comment, then merge.
-   - Removed the cascade from `Pet.type`. Deleting an owner removes their pets and visits and
-     leaves every pet type alone.
-   - **Also changed:** `PetTypeRepositoryImpl.delete` no longer calls `em.remove` on the pet type
-     first. That call only worked because the `Pet.type` cascade quietly re-persisted the type
-     when the next bulk statement auto-flushed (the first JPQL `executeUpdate()` after loading
-     the pets); without the cascade Hibernate rejects pets that point at a removed type at that
-     flush. The explicit JPQL deletes already did the real work, so behaviour is unchanged.
-   - **Tests:** the old `shouldDeleteOwner` passed while the bug existed, because it swallowed the
-     exception. It is replaced by four tests that flush and assert (HSQLDB and H2), and four
-     end-to-end tests on H2 cover owner delete, add pet and change a pet's type.
-2. **Generate the TypeScript API types** from `openapi.yml` (small PR before Add pet, see the
-   Backlog).
+1. **PC009, security ADR enhancements** (PR #17, docs only, open). Post the AI review comment,
+   then merge it first.
+2. **PC010, body-on-204 `openapi.yml` fix** (`feature/PC010_body_204_openapi_fix`): make the
+   spec say 204 No Content for the six update endpoints and drop the body from the controllers,
+   with the existing tests as the guard. See the Backlog entry for the scope.
+3. **PC008, generate the TypeScript API types** from `openapi.yml` (before Add pet; see the
+   Backlog for the plan and the three open questions above). Runs after PC010 so the generated
+   update responses are correct.
 4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
    1. List the screens needed to cover the API use cases.
    2. Build the screens one at a time (Add pet, Edit pet, Add visit, Vets list, and so on).
    3. Connect the screens to the API.
-   4. **Login page and its own ADR**, once the UI screens exist. This is the prerequisite for
-      enabling security outside local development and for the agent flow, because ADR-0007's
-      interim design forwards the employee's credentials and its target is token-based
-      authentication.
+   4. **Login page and its own ADR ([ADR-0009](adr/0009-login-and-authentication-mechanism.md),
+      a placeholder listing the open questions)**, once the UI screens exist. This is the
+      prerequisite for enabling security outside local development and for the agent flow,
+      because ADR-0007 (amendments 1 and 8) requires a token mechanism in which the UI
+      obtains a delegated read-only token for the agent, and rules out passing passwords or
+      the employee's own token through the agent.
    5. Build the AI agent with its features, evals and guardrails, in the three stages in
       ADR-0007: read-only first, then one AI-proposed write (`UPDATE_OWNER_TELEPHONE`), then
       stronger approval guarantees only if needed.
@@ -122,18 +86,26 @@ In the order we agreed, one branch at a time, each merged and approved before th
 ## Blockers and risks
 
 - **No login flow is designed.** Security is off by default and the UI sends no credentials.
-  This blocks any non-local deployment and needs its own ADR. It is planned for after the UI
-  screens are built (see the planned flow above). ADR-0007 does not yet say where the browser
-  holds the employee's credentials; the login ADR must decide that (memory only, never
-  `localStorage`).
+  This blocks any non-local deployment and needs its own ADR, tracked as the ADR-0009
+  placeholder. It is planned for after the UI
+  screens are built (see the planned flow above). ADR-0007 (amendment 1) requires a token
+  mechanism and rules out forwarding passwords through the agent; the login and token ADR must
+  decide the issuer, claims and lifetimes, and where the browser holds the token (memory only,
+  never `localStorage`).
+- **Not production-ready, by design (ADR-0007 gates).** Three things must exist before the
+  system is called production-ready: token-based authentication with delegation (no raw
+  credentials through the agent), optimistic concurrency (`@Version`, `ETag` / `If-Match`) on every
+  updatable resource, and either independently verifiable approval records or wording that does
+  not oversell the audit log. Today none of the three exists; the demo fallbacks are documented as
+  fallbacks.
 - **No JDK on the shell `PATH`.** Backend builds from the terminal need `JAVA_HOME` set (a JDK
   is at `C:\Users\vince\.jdks\openjdk-25.0.2`). IntelliJ is unaffected.
 - **Known and accepted:** the paged owners query loads each owner's pets separately (about 21
   queries per 20-row page). Deliberately left alone.
 - ⚠️ **Last-write-wins edits:** `PUT /owners/{id}` has no version or ETag, so two people editing
-  the same owner overwrite each other silently. ADR-0007 decision 5 sets the plan: a confirm-time
-  comparison for AI-confirmed writes now (a millisecond window is accepted), and `@Version` with
-  `ETag` / `If-Match` as the target in its own PR, which also fixes the Edit owner page.
+  the same owner overwrite each other silently. ADR-0007 decision 5: a confirm-time comparison is
+  the demo fallback only, and `@Version` with `ETag` / `If-Match` on every updatable resource is a
+  **production-readiness gate** (its own PR), which also fixes the Edit owner page.
 
 ## Important decisions
 
@@ -175,9 +147,17 @@ In the order we agreed, one branch at a time, each merged and approved before th
 **Security**
 - `ROLE_ADMIN` outranks `OWNER_ADMIN` and `VET_ADMIN` (ADR-0006).
 - Denied authorization returns 403, not 500.
-- ADR-0007 (Accepted 2026-10-11; on `main` since PR #14): the agent acts as the requesting employee and never writes; a
-  proposal is a closed contract (one operation to start); the UI executes confirmed writes; the
-  audit event is structured logging, with the "AI-assisted" mark treated as a claim, not proof.
+- ADR-0007 (Accepted 2026-10-11; on `main` since PR #14; **amended 2026-10-11 in PC009, eight
+  amendments**): the agent acts as the requesting employee, can only read, and never writes. No
+  raw credentials pass through the agent; the UI exchanges the employee's token for an
+  attenuated, read-only delegated token and gives only that to the agent, so the agent never
+  holds a token that could write. A proposal is a closed contract with one shared schema and
+  contract tests (one operation to start); the UI executes confirmed writes; optimistic
+  concurrency is a production gate; the audit event is structured logging and is audit
+  information, not verified evidence; server-side approval records have two independent
+  triggers. These are designs for the agent and security milestones, not implemented now.
+- ADR-0008 (Proposed, PC009): security failures answer 401 or 403 as `ProblemDetail` through one
+  path. The 500-for-denied-`@PreAuthorize` bug itself was already fixed on 2026-10-05.
 - Never put credentials in `VITE_*` variables; owner data is held in memory only; only the
   assistant's open/closed preference is stored in `localStorage`.
 
@@ -205,11 +185,16 @@ past about ten items, move it to GitHub Issues and link them here.
   updates, not security fixes, so the backend stays on springdoc 3.1.0, refactor-first 0.9.0 and
   the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
   Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
-- **`PUT /owners/{id}` spec and behaviour disagree.** `openapi.yml` documents 200 with an `Owner`
-  body; the controller answers 204 (a body on a 204 is dropped) and the tests assert 204. Found
-  while reviewing PC006. Decide which is right (the UI already does not use the body) and align
-  the spec, or change the controller and tests. **Deferred on purpose (2026-10-11): settle it when
-  ADR-0007 is implemented**, since the confirmed-write flow in the UI is what depends on it.
+- **Update endpoints document a body that the API never sends (PC010, planned).**
+  `openapi.yml` documents `200` with a body for `PUT /owners/{id}`; the controller builds a body
+  with `204 No Content` (the container drops it) and the tests assert 204. The same pattern is
+  in six controllers (`PUT` for owners, pets, pet types, specialties, vets and visits); only the
+  owner spec has been compared so far, so the first step is to check each of the other five.
+  **Decided 2026-10-12: option A, the spec says 204** (it matches the behaviour, the tests and
+  the UI, which treats the update as `Promise<void>`); the controllers stop building a body.
+  Done as its own PR before PC008, because PC008 generates types from this spec. This replaces
+  the earlier deferral to the ADR-0007 implementation. Related: the optimistic-concurrency work
+  later adds an `ETag` header to these responses.
 - **Show the server's field messages in the forms.** A 400 from the API shows only "The request
   contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
   reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not

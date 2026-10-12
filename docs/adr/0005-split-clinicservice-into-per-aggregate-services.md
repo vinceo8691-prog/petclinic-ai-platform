@@ -69,7 +69,7 @@ of being duplicated in all six services.
 - **Leave `ClinicService` as-is**: rejected — this is the problem being
   solved, not an alternative to it.
 - **Give each new service an interface**: rejected for the same reason
-  documented in [the service-interface collapse](../initial-petclinic-modernization.md) —
+  documented in [the service-interface collapse](../architecture/initial-petclinic-modernization.md) —
   no second implementation of any of these services exists or is anticipated,
   so an interface would be ceremony with no payoff.
 - **Split further than per-aggregate** (e.g. separate read/command services
