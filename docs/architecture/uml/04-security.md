@@ -29,7 +29,7 @@ flowchart TB
         llm["LLM provider"]
     end
 
-    sm["Secrets Manager<br/>DB password, LLM key"]
+    sm["Secrets Manager<br/>DB password, LLM key, token signing keys"]
     ps["Parameter Store<br/>non-secret config"]
 
     browser -->|"1 HTTPS"| cf
@@ -37,7 +37,7 @@ flowchart TB
     cf --> alb
     alb -->|"2 /petclinic/*"| api
     alb -.->|"2 /agent/*"| agent
-    agent -.->|"3 REST reads, employee credentials"| api
+    agent -.->|"3 REST reads, delegated read-only token"| api
     agent -.->|"4 HTTPS, API key"| llm
     api -->|"5 JDBC, TLS"| rds
     api -.->|"IAM task role"| sm
@@ -55,7 +55,7 @@ Boundary crossings that need a control:
 |---|---|---|
 | 1 | Internet to edge | TLS, CloudFront in front of everything |
 | 2 | Edge to application | Only the ALB is public; tasks have no public IP; the API still authenticates every request itself |
-| 3 | Agent to API | The request carries the employee's credentials and the API authorizes the employee; the agent's own credential has no data authority; no network-level trust |
+| 3 | Agent to API | The request carries a delegated token (employee subject, `act` = agent, read scope, minutes of lifetime); the API verifies it, authorizes the employee and caps the agent; the agent's own credential has no data authority; no network-level trust |
 | 4 | Agent to LLM | Egress via NAT; API key from Secrets Manager; prompts must not contain more data than the task needs |
 | 5 | API to database | Security group allows only the API tasks; database credentials from Secrets Manager |
 
@@ -98,7 +98,7 @@ flowchart TB
 | Principal | Allowed | Not allowed |
 |---|---|---|
 | API task role | Read its DB secret and its Parameter Store path; write its own CloudWatch log group | Read the agent's secrets |
-| Agent task role | Read its own secrets (LLM key) and Parameter Store path; write its own log group | Read the DB secret; any RDS access |
+| Agent task role | Read its own secret (LLM key) and Parameter Store path; write its own log group | Read the DB secret or the token signing keys; any RDS access |
 | ECS task execution role | Pull images from ECR, write logs, inject secrets at startup | Anything at runtime inside the app |
 | CI deploy role | Push images, update ECS services (assumed through GitHub OIDC, no long-lived keys) | Read secret values |
 
@@ -112,15 +112,23 @@ yield database access, which backs the architecture rule structurally.
   allowlist, and the backend validates every call as it would any client's.
 - **Confirmation is consent, not authorization.** The UI dialog proves a human agreed; the
   backend still enforces what is permitted. The agent has no write tool; the UI executes the
-  confirmed write with the employee's credentials and the exact payload shown.
+  confirmed write with the employee's own token and the exact payload shown.
 - **Confused deputy.** The agent's reach equals the requesting employee's, never more.
 - **Data to the LLM and cross-user state.** Only data the employee may see goes into a prompt;
   agent memory and caches are per user.
-- **Interim credential handling.** While auth is HTTP Basic, the agent forwards the employee's
-  header per request and must never store, log or prompt it.
+- **No raw credentials through the agent.** The employee's password goes only to the token
+  issuer; the UI obtains an attenuated, read-only delegated token and gives only that to the
+  agent, which never logs or prompts it and never receives the employee's own token (ADR-0007
+  decision 1). Basic forwarding is not an
+  accepted interim.
 - **Audit.** The backend logs a structured event per AI-assisted write (employee, target,
   outcome and time are server-derived; no record contents). The "AI-assisted" mark, operation and
   proposal id come from the browser, so they are claims, not proof; the agent logs its proposals
-  so they can be corroborated. A tamper-resistant trail needs server-side confirmation records.
-- **Secrets.** The LLM key never goes to the browser; employee credentials never go to logs,
+  so they can be matched. It is an audit record, not independently verified evidence, and it is
+  not tamper-resistant; that would need server-side confirmation records with integrity
+  protection (ADR-0007 decision 9).
+- **Secrets.** The LLM key never goes to the browser; tokens and passwords never go to logs,
   prompts, images or repository config.
+- **Security failures.** 401 for not authenticated, 403 for not permitted (including the agent
+  cap), as one `ProblemDetail` through one path; no 500, no role names in bodies
+  ([ADR-0008](../../adr/0008-security-failures-answer-401-or-403-as-problemdetail.md)).

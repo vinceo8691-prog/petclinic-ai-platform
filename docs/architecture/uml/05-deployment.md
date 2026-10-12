@@ -67,7 +67,7 @@ flowchart TB
 | ALB | Path-based routing to the two services | Only public component in front of the tasks |
 | ECS Fargate services | One service per application, scaled independently ([ADR-0002](../../adr/0002-separate-ai-agent-from-ui-and-rest-api.md)) | Images built with Jib (already configured for the API) or a Dockerfile |
 | RDS PostgreSQL | System of record | Reachable from the API's security group only, not the agent's |
-| Secrets Manager | DB password, LLM API key | Injected as environment variables by the execution role |
+| Secrets Manager | DB password, LLM API key, token signing keys | Injected as environment variables by the execution role |
 | Parameter Store | Non-secret config such as `petclinic.security.enable`, feature switches | |
 | CloudWatch | Logs, metrics from Actuator, alarms | |
 

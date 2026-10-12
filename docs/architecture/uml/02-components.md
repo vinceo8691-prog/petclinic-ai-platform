@@ -19,6 +19,7 @@ flowchart LR
         services["Services<br/>Owner, Pet, Visit, Vet, PetType, Specialty, User"]
         repos["Spring Data JPA repositories"]
         advice["ExceptionControllerAdvice<br/>ProblemDetail 400 / 403 / 404 / 500"]
+        issuer["Token issuer<br/>login, token exchange, delegated token"]
     end
 
     subgraph agent["petclinic-ai-agent"]
@@ -33,7 +34,9 @@ flowchart LR
 
     pages --> query --> controllers
     panel -.-> chat
-    confirm -.->|"confirmed write, employee credentials"| controllers
+    confirm -.->|"confirmed write, employee token"| controllers
+    pages -.->|"login"| issuer
+    pages -.->|"exchange for delegated token"| issuer
     controllers --> sec
     controllers --> services --> repos --> db
     controllers --> advice
@@ -41,10 +44,10 @@ flowchart LR
     orchestrator -.-> llm
     orchestrator -.-> tools
     orchestrator -.-> proposals
-    tools -.->|"REST reads, employee credentials forwarded"| controllers
+    tools -.->|"REST reads, delegated read-only token"| controllers
 
     classDef target stroke-dasharray: 5 5
-    class agent,chat,orchestrator,tools,proposals,confirm,llm target
+    class agent,chat,orchestrator,tools,proposals,confirm,llm,issuer target
 ```
 
 ## Responsibilities

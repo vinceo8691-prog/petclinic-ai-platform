@@ -86,14 +86,19 @@ now also passes for a principal holding only `ROLE_ADMIN`. No controller or
   also need to know the hierarchy exists. This is the standard trade-off of
   role hierarchies: less local reasoning, more compact and correct global
   behavior.
-- This surfaced a separate, pre-existing gap while verifying the fix: a
-  failed `@PreAuthorize` check throws `AuthorizationDeniedException`, which
-  `ExceptionControllerAdvice` has no specific handler for, so it falls
-  through to the generic `Exception.class` handler and returns **500**
-  instead of 403/401. That's documented in the new test
-  (`RoleHierarchyTests.ownerAdminIsStillDeniedTheVetAdminGatedEndpoint`) as
-  current behavior, not fixed here — it's an orthogonal error-handling gap,
-  not something this role-hierarchy change caused.
+- **Resolved (2026-10-05, commit `1c5624c`):** verifying this change surfaced a
+  separate, pre-existing defect. A failed `@PreAuthorize` check throws
+  `AuthorizationDeniedException`, which `ExceptionControllerAdvice` had no
+  specific handler for, so it fell through to the generic `Exception.class`
+  handler and answered **500** instead of 403. At the time of writing this ADR
+  that was recorded as current behavior, not fixed in this change, because it
+  was an orthogonal error-handling gap that the role hierarchy did not cause.
+  It was fixed shortly afterwards: a denied check now answers **403**, and
+  `RoleHierarchyTests.ownerAdminIsStillDeniedTheVetAdminGatedEndpoint` asserts
+  403. See
+  [authorization-denied-status-code.md](../architecture/authorization-denied-status-code.md);
+  how security failures should behave once tokens exist is decided in
+  [ADR-0008](0008-security-failures-answer-401-or-403-as-problemdetail.md).
 
 ## Verification
 

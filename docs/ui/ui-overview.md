@@ -101,9 +101,14 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   proposed writes will appear in the panel as a distinct "AI suggestion" block with a
   plain-language summary and explicit Confirm/Reject, plus "Review in form", which opens the
   real form prefilled so the change goes through the same validated path as a manual edit.
-  A badge on the launcher will count unresolved suggestions made while the panel is closed. ⚠️ Whether the UI or the
-  agent performs a confirmed write is undecided (default: the UI, after Confirm). Confirmation
-  is not the access control: permission for AI writes is enforced by the backend (see Security).
+  A badge on the launcher will count unresolved suggestions made while the panel is closed.
+  **The UI, not the agent, executes a confirmed write**, with the employee's own token and
+  exactly the payload shown ([ADR-0007](../adr/0007-ai-agent-acts-on-behalf-of-the-employee.md)).
+  A proposal is one operation from a closed contract; the UI validates it on receipt, fetches
+  the owner fresh to show before and after, and re-checks it at confirm time. Confirmation
+  is not the access control: permission is enforced by the backend (see Security).
+  ⚠️ "Review in form" opens an ordinary edit, which ADR-0007 does not cover: it should not be
+  sent as an AI-assisted write unless that is decided. Open.
 
 ## Visual conventions
 
@@ -201,19 +206,22 @@ exists.
 - ⚠️ **No login flow is designed yet.** Screens send no credentials and assume security is
   off; `401`/`403` are shown as "You don't have access…". A login design (and how
   tokens/credentials are held in the browser) is a prerequisite for any non-local deployment
-  and needs its own ADR. Never put credentials in `VITE_*` variables: they are inlined into
+  and needs its own ADR ([ADR-0009](../adr/0009-login-and-authentication-mechanism.md), a
+  placeholder). Never put credentials in `VITE_*` variables: they are inlined into
   the public bundle.
 - Owner data is personal data. It is held in memory only (React Query cache), never written
   to browser storage or logged. All API text is rendered through React's default escaping.
 - Hiding or disabling actions by role is a convenience only; the backend enforces access.
-- **AI-initiated writes (design requirement, not built):** a confirmation dialog is consent, not
-  authorization. The agent can read owner and visit text that someone typed, so it must be treated
-  as capable of being steered by that text. The backend must therefore enforce what an AI-initiated
-  write may do: the agent's own credentials should be read-only, and a write should run with the
-  confirming user's credentials and the exact payload they approved, and be audited as AI-proposed
-  and user-confirmed. ⚠️ Today there is no agent principal and `OWNER_ADMIN` covers reads and
-  writes, so this needs its own ADR before the agent can propose writes (scheduled with the
-  backend work, on its own branch and PR; see [project-status.md](../project-status.md)).
+- **AI-initiated writes (decided in [ADR-0007](../adr/0007-ai-agent-acts-on-behalf-of-the-employee.md),
+  not built):** a confirmation dialog is consent, not authorization. The agent can read owner and
+  visit text that someone typed, so it must be treated as capable of being steered by that text.
+  So the agent never writes: it acts as the requesting employee through a delegated read-only
+  token that the backend verifies and caps, and it returns proposals that the UI shows and
+  executes with the employee's own token. No password reaches the agent. The write is recorded
+  as an audit record (structured logging, not verified evidence), and optimistic concurrency
+  (`ETag` / `If-Match`) is a production gate. Until the login and token work exists, there is no
+  identity to delegate, so none of this can be wired up (see
+  [project-status.md](../project-status.md)).
 
 ## Known gaps
 
