@@ -166,8 +166,10 @@ agent calls the API anonymously. The stage-1 role-by-tool tests run with securit
 
 ### 2. The agent's own credential carries no data authority
 
-The agent holds no credential that can read data, and it needs none to obtain tokens: the
-UI obtains the delegated token for it (decision 1). Its only secret is the LLM API key. If
+The agent holds no standing credential that can read data, and it needs none to obtain
+tokens: the UI obtains a short-lived delegated token and passes it to the agent with each
+request (decision 1), so what the agent reads with is borrowed per request, not owned. Its
+only secret is the LLM API key. If
 the agent ever needs an identity of its own for some other purpose, that identity holds no
 role that passes any `@PreAuthorize` check. It is **not** placed in the role hierarchy and
 **ADR-0006 is unchanged**. No new authority role is introduced for the agent.

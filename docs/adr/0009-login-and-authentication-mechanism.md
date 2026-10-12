@@ -47,6 +47,9 @@ requirements on this ADR, stated in
 - Where the browser holds the token. The rule so far is memory only, which means a page
   reload logs the user out unless a refresh mechanism exists; that trade-off is to be decided,
   not assumed.
+- How agents are registered with the issuer (ADR-0007 says the issuer mints a delegated token
+  only for a "registered agent"): a configured list of agent identifiers, where it lives, and
+  who may change it.
 - The token-exchange endpoint the UI calls to obtain a delegated token for the agent: its
   contract, what the issuer checks (a valid employee token, a registered agent as actor,
   read-only scope), the delegated token's lifetime and how often the UI refreshes it, how it
