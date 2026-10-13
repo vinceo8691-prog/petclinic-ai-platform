@@ -32,8 +32,9 @@ Companion docs: [screen-inventory.md](screen-inventory.md) (what we build),
   those calls resolve to nothing; screens refetch rather than read a response.
 - **Routing via React Router.** Every screen has its own URL. List state (search text, page,
   page size) lives in the query string so lists survive reload and back-navigation.
-- **API types** are hand-written in `src/api/types.ts`. Generating them from `openapi.yml`
-  is anticipated by ADR-0003 but not yet decided.
+- **API types** are generated from `openapi.yml` into `src/api/schema.d.ts` (`openapi-typescript`,
+  ADR-0003; run `npm run api:generate`, CI checks it is up to date). `src/api/types.ts` gives
+  them the friendly names the screens import.
 - **Dev setup**: Vite proxies `/petclinic` to `localhost:9966`, so no CORS in dev.
   Production CORS for the CloudFront origin must be configured on the backend.
 - **Styling**: plain CSS. Design tokens in `src/styles/tokens.css`, a small reset in
@@ -239,4 +240,6 @@ exists.
 
 Vitest + Testing Library, with `fetch` mocked at the boundary. Each screen is tested for its
 loading, error, empty and data states and its main interactions, plus unit tests for
-formatting and validation helpers. Run `npm test`, `npm run lint` and `npm run build`.
+formatting and validation helpers. Run `npm test`, `npm run lint` and `npm run build`. After a change to `openapi.yml`, run
+`npm run api:generate` and commit `src/api/schema.d.ts`; the UI CI job regenerates it and fails
+if it differs.

@@ -10,7 +10,8 @@ previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 
 ## Where we are
 
-`main` is at PR #16 and has everything below. Nothing has been merged yet this week.
+`main` is at PR #18 and has everything below. PC009 and PC010 were merged this week; PC008
+is implemented and waiting for review.
 
 | PR | Title prefix | What it delivered | Merged |
 |---|---|---|---|
@@ -21,25 +22,28 @@ previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 | #14 | PC006 | ADR-0007, ADR-0002 pointer, five Mermaid UML diagrams, performance document; `system-overview.md` moved to `docs/architecture/` | 2026-10-11 |
 | #15 | PC007 | Tooltip on the owners Name sort button; ADR-0007 accepted | 2026-10-11 |
 | #16 | PC005 | Owner delete fix: `Pet.type` no longer cascades; `PetTypeRepositoryImpl.delete` dropped a dead `em.remove` | 2026-10-11 |
+| #17 | PC009 | ADR-0007 amendments, ADR-0008 (Proposed), ADR-0009 (Placeholder), docs consistency pass | 2026-10-12 |
+| #18 | PC010 | `openapi.yml` says 204 No Content (no body) for the six `PUT` and six `DELETE` endpoints; controllers return `ResponseEntity<Void>` | 2026-10-12 |
 
 Also already on `main` before the PC numbering: the `ROLE_ADMIN` hierarchy (ADR-0006) and the
 fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 
 **Open or planned work**
 
-- **PC010** (the `openapi.yml` update and delete responses documented a body the API never
-  sends; the spec now says 204) is implemented on `feature/PC010_body_204_openapi_fix`,
-  with its PR open, awaiting the AI review comment and the merge. It runs before PC008.
-- **PC008** (generate the TypeScript API types from `openapi.yml`) has a branch at `main`,
-  `feature/PC008_api-types-generation`, and is planned after PC010. It also corrects the five
-  `POST` specs from `200` to `201` (see the Backlog). Three questions are open:
-  the generated file's location (`src/api/schema.d.ts`), keeping `readonly`, and the CI
-  freshness check as a step in the existing UI job.
+- **PC008** (generate the TypeScript API types from `openapi.yml`, plus the five `POST` specs
+  corrected from `200` to `201`) is implemented on `feature/PC008_api-types-generation`,
+  uncommitted, awaiting review and a PR. Decisions taken: the generated file is
+  `petclinic-ui/src/api/schema.d.ts`, `readonly` is kept, and the freshness check is a step in
+  the existing UI CI job.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
 
-Nothing merged yet. Work done and waiting for review in PC009 (PR #17):
+Merged:
+
+- **PC010 (PR #18):** the spec fix described in the table above.
+
+PC009 (PR #17, docs only) delivered:
 
 - **ADR-0007 amended in place, eight amendments:** no raw credentials through the agent and a
   token mechanism (amendment 1); one authoritative proposal contract with shared examples
@@ -52,18 +56,23 @@ Nothing merged yet. Work done and waiting for review in PC009 (PR #17):
 - **ADR-0009** (Placeholder): the login and authentication mechanism, with its open
   questions, so the login screen stays on the radar.
 - **A consistency pass over all docs**, including correcting ADR-0006's stale "not fixed" note.
-- Branches prepared for PC010 and PC008.
+
+Implemented and waiting for review:
+
+- **PC008** (`feature/PC008_api-types-generation`): generated TypeScript API types with a CI
+  freshness check, and the five `POST` specs corrected from `200` to `201` (spec only, no
+  controller or test changes). Backend 231 tests, UI 113 tests, lint and build green.
 
 ## Next tasks
 
 In the order we agreed, one branch at a time, each merged and approved before the next:
 
 1. **PC009, security ADR enhancements** (PR #17, docs only): merged.
-2. **PC010, body-on-204 `openapi.yml` fix** (`feature/PC010_body_204_openapi_fix`, PR open): the spec says 204 No Content for the six update and six delete endpoints,
-   and the controllers no longer build a body. See the Backlog entry.
-3. **PC008, generate the TypeScript API types** from `openapi.yml` (before Add pet; see the
-   Backlog for the plan and the three open questions above). Runs after PC010 so the generated
-   update responses are correct.
+2. **PC010, body-on-204 `openapi.yml` fix** (PR #18): merged. The spec says 204 No Content for
+   the six update and six delete endpoints, and the controllers no longer build a body.
+3. **PC008, generate the TypeScript API types** from `openapi.yml` and fix the five `POST`
+   specs to 201 (`feature/PC008_api-types-generation`, implemented, awaiting review). Runs
+   before Add pet.
 4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
    1. List the screens needed to cover the API use cases.
    2. Build the screens one at a time (Add pet, Edit pet, Add visit, Vets list, and so on).
@@ -122,8 +131,9 @@ In the order we agreed, one branch at a time, each merged and approved before th
   `useState`. No global store, form library or UI kit.
 - Three layers per feature: plain `api/` functions, one hooks file, then components.
 - Extract a shared component only after its second or third use.
-- API types are hand-written for now. Generating them from `openapi.yml` with `openapi-typescript`
-  (types only) is planned after PC005; see the Backlog.
+- API types are generated from `openapi.yml` with `openapi-typescript` (types only, PC008) into
+  `src/api/schema.d.ts`; `src/api/types.ts` gives them friendly names. Run `npm run api:generate`
+  after any spec change; CI fails if the committed file is stale.
 
 **Owner UI**
 - Add owner and Edit owner are their own pages, not dialogs.
@@ -182,7 +192,7 @@ past about ten items, move it to GitHub Issues and link them here.
   the generator plugin 7.25.0 for now. Dependabot can propose newer versions on its monthly run.
   Upgrading Vite and TypeScript together with typescript-eslint is a deliberate future task.
 - **Update and delete endpoints documented a body that the API never sends (PC010,
-  PR open).** `openapi.yml` documented `200` with a body for the six `PUT`
+  merged as #18).** `openapi.yml` documented `200` with a body for the six `PUT`
   endpoints (owners, pets, pet types, specialties, vets, visits) and the six `DELETE` endpoints,
   while the controllers answer `204 No Content` (the container dropped the body they built) and
   the tests assert 204. **Decided 2026-10-12: option A, the spec says 204**, and the scope
@@ -191,10 +201,9 @@ past about ten items, move it to GitHub Issues and link them here.
   seven update tests assert an empty body instead of a JSON content type. Done as its own PR
   before PC008, because PC008 generates types from this spec. Related: the optimistic-concurrency
   work later adds an `ETag` header to these responses.
-- **POST specs for pet types, visits, specialties, vets and users say `200` but the controllers
-  answer `201`** (found during PC010, not fixed there). The owner, pet and visit-under-owner
-  POSTs already say 201. Same kind of spec-only fix. **Decided 2026-10-12: done as part of
-  PC008**, in the same branch and before the types are generated.
+- ✅ **POST specs for pet types, visits, specialties, vets and users said `200` but the
+  controllers answer `201`** (found during PC010). Fixed in PC008 as a spec-only change: `201`,
+  and the meaningless `ETag` and `304` blocks dropped from those creates.
 - **Show the server's field messages in the forms.** A 400 from the API shows only "The request
   contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
   reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not
@@ -214,15 +223,12 @@ past about ten items, move it to GitHub Issues and link them here.
   tell the user to move or remove the pets first). Do it after PC005, which removed the
   `Pet.type` cascade this behaviour sits next to and dropped the `em.remove` call in
   `PetTypeRepositoryImpl.delete`; the guard replaces that method's delete-everything logic.
-- **Generate the TypeScript API types from `openapi.yml`** (ADR-0003 anticipated it). Proposed
-  timing: a small PR before Add pet, when the type count grows (the CI freshness check is now
-  possible, since PC003 is merged). Plan: add
-  `openapi-typescript` as a dev dependency (types only, nothing shipped in the bundle; pin the
-  version), an npm script reading `spring-petclinic-rest/src/main/resources/openapi.yml`, a
-  committed generated file, `types.ts` re-exporting friendly names so screens do not change, and a
-  CI check that fails when the committed file is out of date. Keep our own fetch client and query
-  hooks (no generated client or hooks), and keep `ownerValidation.ts` hand-written, because types
-  do not encode rules such as "exactly 10 digits". ⚠️ Check how readonly fields (`id`, `pets`)
-  come out, and that the spec matches real responses (the hand-written `Visit` already lacks
-  `petId`).
+- ✅ **TypeScript API types are generated from `openapi.yml`** (PC008, ADR-0003). Dev
+  dependency `openapi-typescript` 7.13.0 (types only, pinned); `npm run api:generate` writes the
+  committed `petclinic-ui/src/api/schema.d.ts`; `types.ts` keeps the friendly names; a CI step
+  regenerates and fails on `git diff`. The fetch client, hooks and `ownerValidation.ts` stay
+  hand-written. Wrinkles handled in `types.ts`: `Owner.id` is optional in the spec (aliased to
+  required), `Visit` has a required `petId` and an optional `date`, and `ProblemDetail` stays
+  `Partial`. A Dependabot bump of `openapi-typescript` will fail the freshness check until
+  someone runs `npm run api:generate` and commits the result; that failure is expected.
 - ✅ Dependabot **security updates** were enabled in the GitHub repo settings (2026-10-09).
