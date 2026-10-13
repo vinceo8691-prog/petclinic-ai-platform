@@ -50,7 +50,7 @@ describe('OwnerDetailsPage', () => {
               makePet(1, 'Leo', {
                 birthDate: '2020-09-07',
                 type: { id: 1, name: 'cat' },
-                visits: [{ id: 5, date: '2026-03-14', description: 'rabies shot' }],
+                visits: [{ id: 5, petId: 1, date: '2026-03-14', description: 'rabies shot' }],
               }),
               makePet(2, 'Basil'),
             ],

@@ -142,7 +142,7 @@ function PetCard({ pet }: { pet: Pet }) {
         <ul className={styles.visits} aria-label={`Visits for ${pet.name}`}>
           {pet.visits.map((visit) => (
             <li key={visit.id}>
-              <span className={styles.visitDate}>{formatDate(visit.date)}</span> {visit.description}
+              <span className={styles.visitDate}>{formatDate(visit.date ?? '')}</span> {visit.description}
             </li>
           ))}
         </ul>

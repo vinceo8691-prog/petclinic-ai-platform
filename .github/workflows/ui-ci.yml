@@ -32,6 +32,10 @@ jobs:
           cache-dependency-path: petclinic-ui/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Check the generated API types are up to date
+        run: |
+          npm run api:generate
+          git diff --exit-code -- src/api/schema.d.ts
       - name: Lint
         run: npm run lint
       - name: Test

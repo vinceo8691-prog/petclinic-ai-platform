@@ -648,24 +648,12 @@ paths:
               $ref: '#/components/schemas/PetTypeFields'
         required: true
       responses:
-        200:
+        201:
           description: Pet type created successfully.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetType'
-        304:
-          description: Not modified.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
         400:
           description: Bad request.
           content:
@@ -1119,24 +1107,12 @@ paths:
               $ref: '#/components/schemas/Visit'
         required: true
       responses:
-        200:
+        201:
           description: visit created successfully.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Visit'
-        304:
-          description: Not modified.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
         400:
           description: Bad request.
           content:
@@ -1352,24 +1328,12 @@ paths:
               $ref: '#/components/schemas/Specialty'
         required: true
       responses:
-        200:
+        201:
           description: Specialty created successfully.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Specialty'
-        304:
-          description: Not modified.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
         400:
           description: Bad request.
           content:
@@ -1586,24 +1550,12 @@ paths:
               $ref: '#/components/schemas/Vet'
         required: true
       responses:
-        200:
+        201:
           description: Vet created successfully.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vet'
-        304:
-          description: Not modified.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
         400:
           description: Bad request.
           content:
@@ -1786,24 +1738,12 @@ paths:
               $ref: '#/components/schemas/User'
         required: true
       responses:
-        200:
+        201:
           description: User created successfully.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        304:
-          description: Not modified.
-          headers:
-            ETag:
-              description: An ID for this version of the response.
-              schema:
-                type: string
         400:
           description: Bad request.
           content:

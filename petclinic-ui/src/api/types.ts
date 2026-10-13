@@ -1,62 +1,32 @@
-// Hand-written from spring-petclinic-rest openapi.yml; replace with generated types later (ADR-0003).
+// Friendly names over the types generated from spring-petclinic-rest openapi.yml (ADR-0003).
+// Regenerate schema.d.ts with `npm run api:generate` whenever the spec changes; CI fails if it is stale.
 
-export interface PetType {
-  id: number
-  name: string
-}
+import type { components, operations } from './schema'
 
-export interface Visit {
-  id: number
-  /** ISO date, e.g. 2026-03-14. */
-  date: string
-  description: string
-}
+type Schemas = components['schemas']
 
-export interface Pet {
-  id: number
-  name: string
-  /** ISO date, e.g. 2020-09-07. */
-  birthDate: string
-  type: PetType
-  visits: Visit[]
-}
+/** Makes optional properties required, for fields the spec leaves optional but the API always sends. */
+type WithRequired<Type, Key extends keyof Type> = Type & { [Property in Key]-?: Type[Property] }
 
-export interface OwnerFields {
-  firstName: string
-  lastName: string
-  address: string
-  city: string
-  telephone: string
-}
+export type PetType = Schemas['PetType']
 
-export interface Owner extends OwnerFields {
-  id: number
-  pets: Pet[]
-}
+export type Visit = Schemas['Visit']
 
-export interface OwnerPage {
-  content: Owner[]
-  page: number
-  size: number
-  totalElements: number
-  totalPages: number
-}
+export type Pet = Schemas['Pet']
 
-export type OwnerSortField = 'id' | 'lastName'
-export type SortDirection = 'asc' | 'desc'
+export type OwnerFields = Schemas['OwnerFields']
 
-export interface ListOwnersParams {
-  lastName?: string
-  /** The API defaults to id. */
-  sort?: OwnerSortField
-  /** The API defaults to asc. */
-  direction?: SortDirection
-  page?: number
-  size?: number
-}
+// The spec leaves Owner.id optional (readOnly, so it is not sent on create), but every owner the API
+// returns has one.
+export type Owner = WithRequired<Schemas['Owner'], 'id'>
 
-export interface ProblemDetail {
-  title?: string
-  detail?: string
-  status?: number
-}
+export type OwnerPage = Omit<Schemas['OwnerPage'], 'content'> & { content: Owner[] }
+
+export type ListOwnersParams = NonNullable<operations['listOwnersPage']['parameters']['query']>
+
+export type OwnerSortField = NonNullable<ListOwnersParams['sort']>
+export type SortDirection = NonNullable<ListOwnersParams['direction']>
+
+// The spec lists every ProblemDetail field as required, but error bodies from the container or the
+// gateway may omit them, so the UI treats them all as optional.
+export type ProblemDetail = Partial<Schemas['ProblemDetail']>
