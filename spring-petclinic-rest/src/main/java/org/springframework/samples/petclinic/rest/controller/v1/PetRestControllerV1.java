@@ -72,7 +72,7 @@ public class PetRestControllerV1 implements PetsApi {
 
     @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
     @Override
-    public ResponseEntity<PetDto> updatePet(Integer petId, PetDto petDto) {
+    public ResponseEntity<Void> updatePet(Integer petId, PetDto petDto) {
         Pet currentPet = this.petService.findPetById(petId);
         if (currentPet == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -81,12 +81,12 @@ public class PetRestControllerV1 implements PetsApi {
         currentPet.setName(petDto.getName());
         currentPet.setType(petMapper.toPetType(petDto.getType()));
         this.petService.savePet(currentPet);
-        return new ResponseEntity<>(petMapper.toPetDto(currentPet), HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
     @Override
-    public ResponseEntity<PetDto> deletePet(Integer petId) {
+    public ResponseEntity<Void> deletePet(Integer petId) {
         Pet pet = this.petService.findPetById(petId);
         if (pet == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

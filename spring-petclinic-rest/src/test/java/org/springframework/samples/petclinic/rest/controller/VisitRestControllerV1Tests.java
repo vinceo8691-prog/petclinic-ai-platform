@@ -195,7 +195,7 @@ class VisitRestControllerV1Tests {
         String newVisitAsJSON = mapper.writeValueAsString(visitMapper.toVisitDto(newVisit));
     	this.mockMvc.perform(put("/api/visits/2")
     		.content(newVisitAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-        	.andExpect(content().contentType("application/json"))
+        	.andExpect(content().string(""))
         	.andExpect(status().isNoContent());
 
     	this.mockMvc.perform(get("/api/visits/2")

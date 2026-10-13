@@ -231,11 +231,9 @@ never part of the contract and never sent to the API.
    `PUT /api/owners/{ownerId}` with that full record, so the model cannot alter any other
    field (the update endpoint replaces the whole record).
 
-The update answers **204 No Content**: `updateOwner` builds its response with an owner body
-and `HttpStatus.NO_CONTENT`, and the container drops a body from a 204, which the controller
-tests also assert. `openapi.yml` documents 200 with an `Owner` body instead, so the spec and
-the behaviour disagree; the spec is to be corrected to 204 in its own change (PC010, before
-the TypeScript types are generated), not the behaviour. The UI must therefore not rely on
+The update answers **204 No Content**, which the controller tests assert and `openapi.yml`
+documents (corrected from a 200 with an `Owner` body in PC010, before the TypeScript types
+are generated; the controller no longer builds a body). The UI must therefore not rely on
 the response body: after a confirmed write it re-fetches the owner to show the result (the
 same `GET` used for the comparison in decision 5 is a candidate to reuse).
 

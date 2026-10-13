@@ -204,7 +204,7 @@ class PetTypeRestControllerV1Tests {
         String newPetTypeAsJSON = mapper.writeValueAsString(petTypeMapper.toPetTypeDto(newPetType));
     	this.mockMvc.perform(put("/api/pettypes/2")
     		.content(newPetTypeAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
-        	.andExpect(content().contentType("application/json"))
+        	.andExpect(content().string(""))
         	.andExpect(status().isNoContent());
 
     	this.mockMvc.perform(get("/api/pettypes/2")

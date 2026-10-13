@@ -47,9 +47,8 @@ Security is off by default.
 - **Owner details / Edit owner**: `GET /owners/{ownerId}` returns the owner with each pet's `type`,
   `birthDate` and `visits`. A `404` (or a non-numeric id, which is never sent) shows "Owner not found".
 - **Edit owner**: `PUT /owners/{ownerId}` takes the same `OwnerFields` body as Add owner. The API answers
-  `204 No Content` (the generated controller attaches a body to it, but none is sent, and
-  `openapi.yml` still documents a 200 with a body; correcting the spec to 204 is planned as
-  PC010), so the UI refetches the owner instead of reading a response.
+  `204 No Content` (`openapi.yml` says so since PC010), so the UI refetches the owner instead of
+  reading a response.
 - **Delete owner**: `DELETE /owners/{ownerId}` answers `204`. `Owner.pets` and `Pet.visits` are mapped
   with `CascadeType.ALL`, so the owner's pets and their visits go with them; the confirmation says so.
   `Pet.type` is not cascaded, so the pet types the owner's pets shared with other pets stay in
