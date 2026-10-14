@@ -3,8 +3,10 @@ package org.springframework.samples.petclinic.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.samples.petclinic.model.PetType;
+import org.springframework.samples.petclinic.model.PetTypeWithCounts;
 import org.springframework.samples.petclinic.rest.dto.PetTypeDto;
 import org.springframework.samples.petclinic.rest.dto.PetTypeFieldsDto;
+import org.springframework.samples.petclinic.rest.dto.PetTypeWithCountsDto;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,4 +26,8 @@ public interface PetTypeMapper {
     PetTypeFieldsDto toPetTypeFieldsDto(PetType petType);
 
     List<PetTypeDto> toPetTypeDtos(Collection<PetType> petTypes);
+
+    PetTypeWithCountsDto toPetTypeWithCountsDto(PetTypeWithCounts petTypeWithCounts);
+
+    List<PetTypeWithCountsDto> toPetTypeWithCountsDtos(Collection<PetTypeWithCounts> petTypesWithCounts);
 }

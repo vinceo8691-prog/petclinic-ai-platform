@@ -66,7 +66,7 @@ Related: [system-overview](system-overview.md), [deployment diagram](uml/05-depl
 
 | Item | Status | Detail |
 |---|---|---|
-| Errors answer with RFC 7807 `ProblemDetail`: 400 for invalid input, 403 for a denied authorization check, 404 for missing records and integrity violations, 500 for the unexpected | Known | `ExceptionControllerAdvice`, [note](authorization-denied-status-code.md) |
+| Errors answer with RFC 7807 `ProblemDetail`: 400 for invalid input, 403 for a denied authorization check, 404 for missing records, 409 for data-constraint violations, 500 for the unexpected | Known | `ExceptionControllerAdvice`, [note](authorization-denied-status-code.md) |
 | The UI retries queries up to three times on network failures and 5xx, and never on a 4xx other than 408 and 429 | Decided | `shouldRetry` in `petclinic-ui/src/api/client.ts` |
 | The agent cannot corrupt data when it fails: it has no write path, and its proposals are validated and executed by the UI against the backend | Decided | ADR-0007 decisions 3 and 4 |
 | The UI and API keep working when the agent or the model is unavailable, because the UI talks to both separately and the agent is optional | Decided | ADR-0002 |

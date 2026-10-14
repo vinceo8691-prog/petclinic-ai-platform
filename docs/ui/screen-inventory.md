@@ -16,10 +16,10 @@ confirmation before it counts as decided; `Deferred` = known but intentionally n
 | 3 | Add pet | `/owners/:ownerId/pets/new` | Register a new pet (name, birth date, type) for an owner. | Decided | Not started |
 | 4 | Add owner | `/owners/new` | Create an owner as its own page (first/last name, address, city, telephone). | Decided | Built |
 | 5 | Edit owner | `/owners/:ownerId/edit` | Update an owner's contact details; shares the Add owner form. | Decided | Built |
-| 6 | Edit pet | `/owners/:ownerId/pets/:petId/edit` | Update a pet's name, birth date or type; shares the Add pet form. | Proposed | Not started |
-| 7 | Add visit | `/owners/:ownerId/pets/:petId/visits/new` | Record a visit (date, description) for a pet. | Proposed | Not started |
+| 6 | Edit pet | `/owners/:ownerId/pets/:petId/edit` | Update a pet's name, birth date or type; shares the Add pet form. | Decided | Not started |
+| 7 | Add visit | `/owners/:ownerId/pets/:petId/visits/new` | Record a visit (date, description) for a pet. | Decided | Not started |
 | 8 | Vets list | `/vets` | List of vets and their specialties; Add, Edit and Delete actions for `VET_ADMIN`. | Proposed | Not started |
-| 9 | Edit visit | `/owners/:ownerId/pets/:petId/visits/:visitId/edit` | Correct a visit's date or description; shares the visit form with Add visit. | Proposed | Not started |
+| 9 | Edit visit | `/owners/:ownerId/pets/:petId/visits/:visitId/edit` | Correct a visit's date or description; shares the visit form with Add visit. | Decided | Not started |
 | 10 | Add vet | `/vets/new` | Create a vet (first/last name, specialties chosen from the catalog). | Proposed | Not started |
 | 11 | Edit vet | `/vets/:vetId/edit` | Update a vet; shares the Add vet form. | Proposed | Not started |
 | 12 | Specialties | `/specialties` | One page: the list, an add field, and inline edit and delete for each row. | Decided (decision B) | Not started |
@@ -112,8 +112,9 @@ type from data it already holds. The counts come from the backend instead: a new
 `PetTypeWithCounts` schema in `openapi.yml` (the pet type fields plus read-only `petCount` and
 `visitCount`), returned by `GET /pettypes` and `GET /pettypes/{petTypeId}`. `PetType` itself is
 unchanged, so `Pet.type` stays as it is and pet payloads cost no extra query. This follows the
-existing pattern of read-only derived data in a resource (`Owner.pets`). It is an API change, so
-it is its own backend branch before the Pet types screen.
+existing pattern of read-only derived data in a resource (`Owner.pets`). Built in PC014: one grouped
+count query (pets counted distinct, visits through a left join), so a type with no pets reports 0 and
+0. `POST` and `PUT` still use `PetType`; only the two reads return the counted schema.
 ⚠️ Also, shipping Delete with a count-based confirmation now means the delete-everything behaviour
 ships; the planned guard (refuse with a 409 when pets use the type, see
 [project-status.md](../project-status.md)) would later replace it.
@@ -135,7 +136,7 @@ ships; the planned guard (refuse with a 409 when pets use the type, see
 | E | Every delete dialog states how many associated objects go with the item (table above). | **Decided** |
 | F | Write errors show the server's `detail`, never "not found": foreign-key failures answered `404` until PC012, which made them `409` (see [ui-overview.md](ui-overview.md#backend-behaviour-the-ui-must-respect)). The client already carries `detail` (the Delete owner dialog shows it), so the work is the rule for new write screens plus reading `schemaValidationErrors`. The backend status is done (PC012, decided 409). The UI half is PC013: write failures show the server's `detail` (a 401 or 403 on a write says "You don't have permission to make this change."), and a 400's field messages show under the field and in the form summary, in friendly wording. | **Decided** (backend PC012, UI PC013) |
 | G | Pet and visit actions sit on Owner details, not behind a pet page. The **Pets** heading row has a right-aligned **Add pet** text button. Each pet card has a top-right cluster of two icon actions, **Edit** (pencil, links to screen 6) and **Delete** (trash, red outline, opens the Delete pet dialog); the name truncates before the cluster. Each card's visits area has an **Add visit** text button (and, when Edit and Delete visit are built, the same per-visit icon pattern). Icon-only controls carry an `aria-label` that names the pet or visit ("Edit Rosy"), a `title` tooltip and a 40px hit area (44px on touch); Delete returns focus to its icon when cancelled. Owner details uses the same `iconAction` pattern for Edit owner and Delete owner. ⚠️ Assumptions: Add pet sits in the Pets heading row rather than beside the card icons, because those icons are per card; Add visit sits in the card body for the same reason. | **Decided** (not yet built) |
-| H | Pet type counts come from the backend: a separate `PetTypeWithCounts` schema (pet type fields plus read-only `petCount` and `visitCount`) returned by `GET /pettypes` and `GET /pettypes/{petTypeId}`; `PetType` and `Pet.type` are unchanged. Pet and visit writes (add, edit, delete) also invalidate the `['pet-types']` query so the counts never go stale. Because `listPetTypes` now returns the counted schema everywhere, the Add pet and Edit pet type selects receive counts they ignore. | **Decided** (docs only; the `openapi.yml` and backend change is its own branch, not yet built) |
+| H | Pet type counts come from the backend: a separate `PetTypeWithCounts` schema (pet type fields plus read-only `petCount` and `visitCount`) returned by `GET /pettypes` and `GET /pettypes/{petTypeId}`; `PetType` and `Pet.type` are unchanged. Pet and visit writes (add, edit, delete) also invalidate the `['pet-types']` query so the counts never go stale. Because `listPetTypes` now returns the counted schema everywhere, the Add pet and Edit pet type selects receive counts they ignore. | **Decided** (backend built in PC014; the `['pet-types']` invalidation lands with the pet and visit write screens) |
 
 ## Deferred
 
@@ -148,7 +149,7 @@ Shell → Owner search → Add owner (done) → Owner details (with Edit and Del
 
 1. **Two backend-first fixes, each on its own branch** (decided 2026-10-13): the foreign-key
    failure that answered `404` and now answers `409` (decision F, PC012), then the pet-type usage counts for the Delete pet type
-   dialog. Write-error handling in the UI (PC013: the server's `detail` and field messages) came
+   dialog (PC014). Write-error handling in the UI (PC013: the server's `detail` and field messages) came
    first so every later write screen reports errors correctly.
 2. **Front desk core:** Add pet, Add visit, Edit pet, Edit visit, Delete pet, Delete visit.
 3. **Clinic reads:** Vets list.

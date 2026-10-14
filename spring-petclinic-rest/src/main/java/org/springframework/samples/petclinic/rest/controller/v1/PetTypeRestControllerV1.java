@@ -21,9 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.mapper.PetTypeMapper;
 import org.springframework.samples.petclinic.model.PetType;
+import org.springframework.samples.petclinic.model.PetTypeWithCounts;
 import org.springframework.samples.petclinic.rest.api.PettypesApi;
 import org.springframework.samples.petclinic.rest.dto.PetTypeDto;
 import org.springframework.samples.petclinic.rest.dto.PetTypeFieldsDto;
+import org.springframework.samples.petclinic.rest.dto.PetTypeWithCountsDto;
 import org.springframework.samples.petclinic.service.PetTypeService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,22 +52,22 @@ public class PetTypeRestControllerV1 implements PettypesApi {
 
     @PreAuthorize("hasAnyRole(@roles.OWNER_ADMIN, @roles.VET_ADMIN)")
     @Override
-    public ResponseEntity<List<PetTypeDto>> listPetTypes() {
-        List<PetType> petTypes = new ArrayList<>(this.petTypeService.findAllPetTypes());
+    public ResponseEntity<List<PetTypeWithCountsDto>> listPetTypes() {
+        List<PetTypeWithCounts> petTypes = new ArrayList<>(this.petTypeService.findAllPetTypesWithCounts());
         if (petTypes.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(petTypeMapper.toPetTypeDtos(petTypes), HttpStatus.OK);
+        return new ResponseEntity<>(petTypeMapper.toPetTypeWithCountsDtos(petTypes), HttpStatus.OK);
     }
 
     @PreAuthorize("hasAnyRole(@roles.OWNER_ADMIN, @roles.VET_ADMIN)")
     @Override
-    public ResponseEntity<PetTypeDto> getPetType(Integer petTypeId) {
-        PetType petType = this.petTypeService.findPetTypeById(petTypeId);
+    public ResponseEntity<PetTypeWithCountsDto> getPetType(Integer petTypeId) {
+        PetTypeWithCounts petType = this.petTypeService.findPetTypeWithCountsById(petTypeId);
         if (petType == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(petTypeMapper.toPetTypeDto(petType), HttpStatus.OK);
+        return new ResponseEntity<>(petTypeMapper.toPetTypeWithCountsDto(petType), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole(@roles.VET_ADMIN)")

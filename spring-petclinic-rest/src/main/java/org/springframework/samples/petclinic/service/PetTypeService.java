@@ -2,11 +2,13 @@ package org.springframework.samples.petclinic.service;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.samples.petclinic.model.PetType;
+import org.springframework.samples.petclinic.model.PetTypeWithCounts;
 import org.springframework.samples.petclinic.repository.PetTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class PetTypeService {
@@ -25,6 +27,16 @@ public class PetTypeService {
     @Transactional(readOnly = true)
     public Collection<PetType> findAllPetTypes() throws DataAccessException {
         return petTypeRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PetTypeWithCounts> findAllPetTypesWithCounts() throws DataAccessException {
+        return petTypeRepository.findAllWithCounts();
+    }
+
+    @Transactional(readOnly = true)
+    public PetTypeWithCounts findPetTypeWithCountsById(int petTypeId) throws DataAccessException {
+        return petTypeRepository.findWithCountsById(petTypeId);
     }
 
     @Transactional

@@ -85,8 +85,9 @@ raw JPQL.
 - **Bad input answers 400.** `ExceptionControllerAdvice` maps bean-validation failures (request
   parameters such as `size=0` or `page=-1`, and entity rules such as the telephone), parameter
   type mismatches (`page=abc`) and invalid sort values to a `400` ProblemDetail with the offending
-  fields in `schemaValidationErrors`. Unexpected errors stay `500`, and data-integrity errors are
-  still mapped to `404`.
+  fields in `schemaValidationErrors`. Unexpected errors stay `500`, and data-integrity errors
+  (a foreign key to a record that does not exist, a unique violation) answer `409` Conflict with
+  a generic detail (PC012; they answered `404` before).
 - **Root** (`RootRestControllerV1`): `GET /` redirects to
   `/petclinic/swagger-ui/index.html`.
 

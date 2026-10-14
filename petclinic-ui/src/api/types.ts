@@ -10,6 +10,10 @@ type WithRequired<Type, Key extends keyof Type> = Type & { [Property in Key]-?: 
 
 export type PetType = Schemas['PetType']
 
+// What the pet types list and detail endpoints return: the pet type plus how many pets (and their visits) it has,
+// for the Delete pet type confirmation.
+export type PetTypeWithCounts = Schemas['PetTypeWithCounts']
+
 export type Visit = Schemas['Visit']
 
 export type Pet = Schemas['Pet']

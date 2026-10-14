@@ -656,7 +656,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PetType'
+                  $ref: '#/components/schemas/PetTypeWithCounts'
         304:
           description: Not modified.
           headers:
@@ -742,7 +742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PetType'
+                $ref: '#/components/schemas/PetTypeWithCounts'
         304:
           description: Not modified.
           headers:
@@ -2330,6 +2330,32 @@ components:
               example: 1
           required:
             - id
+    PetTypeWithCounts:
+      title: Pet type with counts
+      description: A pet type with how many pets are of this type and how many visits those pets have had.
+      allOf:
+        - $ref: '#/components/schemas/PetType'
+        - type: object
+          properties:
+            petCount:
+              title: Pet count
+              description: The number of pets of this type.
+              type: integer
+              format: int32
+              minimum: 0
+              example: 4
+              readOnly: true
+            visitCount:
+              title: Visit count
+              description: The number of visits made by the pets of this type.
+              type: integer
+              format: int32
+              minimum: 0
+              example: 4
+              readOnly: true
+          required:
+            - petCount
+            - visitCount
     User:
       title: User
       description: An user.

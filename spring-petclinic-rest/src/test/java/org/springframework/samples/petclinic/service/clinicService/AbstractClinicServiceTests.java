@@ -588,6 +588,44 @@ abstract class AbstractClinicServiceTests {
         PetType petType3 = EntityUtils.getById(petTypes, PetType.class, 3);
         assertThat(petType3.getName()).isEqualTo("lizard");
     }
+    @Test
+    void shouldCountPetsAndVisitsPerPetType() {
+        // Seed data: cat has four pets whose two visited pets made four visits in all; no other type has a visit.
+        List<PetTypeWithCounts> counts = this.petTypeService.findAllPetTypesWithCounts();
+
+        assertThat(counts)
+            .extracting(PetTypeWithCounts::id, PetTypeWithCounts::name, PetTypeWithCounts::petCount, PetTypeWithCounts::visitCount)
+            .containsExactly(
+                org.assertj.core.groups.Tuple.tuple(1, "cat", 4L, 4L),
+                org.assertj.core.groups.Tuple.tuple(2, "dog", 4L, 0L),
+                org.assertj.core.groups.Tuple.tuple(3, "lizard", 1L, 0L),
+                org.assertj.core.groups.Tuple.tuple(4, "snake", 1L, 0L),
+                org.assertj.core.groups.Tuple.tuple(5, "bird", 2L, 0L),
+                org.assertj.core.groups.Tuple.tuple(6, "hamster", 1L, 0L));
+    }
+
+    @Test
+    void shouldCountOnePetTypeById() {
+        PetTypeWithCounts cat = this.petTypeService.findPetTypeWithCountsById(1);
+
+        assertThat(cat.name()).isEqualTo("cat");
+        assertThat(cat.petCount()).isEqualTo(4);
+        assertThat(cat.visitCount()).isEqualTo(4);
+        assertThat(this.petTypeService.findPetTypeWithCountsById(999)).isNull();
+    }
+
+    @Test
+    @Transactional
+    void shouldCountZeroForAPetTypeWithoutPets() {
+        PetType petType = new PetType();
+        petType.setName("tiger");
+        this.petTypeService.savePetType(petType);
+
+        PetTypeWithCounts tiger = this.petTypeService.findPetTypeWithCountsById(petType.getId());
+
+        assertThat(tiger.petCount()).isZero();
+        assertThat(tiger.visitCount()).isZero();
+    }
 
     @Test
     @Transactional

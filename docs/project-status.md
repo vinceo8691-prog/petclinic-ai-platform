@@ -10,8 +10,8 @@ previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 
 ## Where we are
 
-`main` is at PR #19 and has everything below. PC008, PC009 and PC010 were all merged on
-2026-10-12.
+`main` is at PR #22 and has everything below. PC008, PC009 and PC010 were merged on 2026-10-12,
+PC011 to PC013 on 2026-10-14.
 
 | PR | Title prefix | What it delivered | Merged |
 |---|---|---|---|
@@ -25,31 +25,33 @@ previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 | #17 | PC009 | ADR-0007 amendments, ADR-0008 (Proposed), ADR-0009 (Placeholder), docs consistency pass | 2026-10-12 |
 | #18 | PC010 | `openapi.yml` says 204 No Content (no body) for the six `PUT` and six `DELETE` endpoints; controllers return `ResponseEntity<Void>` | 2026-10-12 |
 | #19 | PC008 | TypeScript API types generated from `openapi.yml` (`schema.d.ts`) with a CI freshness check; five `POST` specs corrected from `200` to `201` | 2026-10-12 |
+| #20 | PC011 | Full-workflow screen analysis merged into `docs/ui/` (14 screens, build order); decisions A to H | 2026-10-14 |
+| #21 | PC012 | Data-constraint failures answer `409` instead of `404`; `409` documented on all 21 write operations (decision F, backend half) | 2026-10-14 |
+| #22 | PC013 | Server `detail` and field messages in the owner form; `describeWriteError` for 401 and 403 on writes (decision F, UI half) | 2026-10-14 |
 
 Also already on `main` before the PC numbering: the `ROLE_ADMIN` hierarchy (ADR-0006) and the
 fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 
 **Open or planned work**
 
-- **Screens analysis merged into `docs/ui/` (2026-10-13, uncommitted until reviewed).** The full
-  workflow analysis, including the administration screens, is in the four UI docs. Decided:
+- **Screens analysis (PC011, merged).** The full workflow analysis, including the administration
+  screens, is in the four UI docs. Decided:
   A (Edit pet and Edit visit prefill from the cached owner), B (Specialties and Pet types are one
   list page each with an inline form), C (Pet types include Delete now, with a count-based
   confirmation), D (Add user waits for login), E (every delete dialog states what else goes), F (write errors show the server's `detail`),
   G (pet and visit actions are icons on each pet card and buttons in the Pets heading row) and H
   (pet type counts come from a separate `PetTypeWithCounts` schema on `GET /pettypes`, and pet and
-  visit writes invalidate `['pet-types']`). H needs its own backend branch (an `openapi.yml`
-  change), see `docs/ui/screen-inventory.md`.
-- **PC012, foreign-key failures answer 409 instead of 404 (decision F, backend half).** The
-  `DataIntegrityViolationException` handler answers `409` with a generic detail; `openapi.yml`
-  documents it on all 21 write operations (POST, PUT, DELETE); `schema.d.ts` regenerated. Tests: 232
-  backend, 113 UI, lint and build green. The UI half of decision F is PC013, below.
-- **PC013, UI half of decision F (branch `feature/PC013_detail_and_schema_fix`, uncommitted,
-  awaiting review).** `describeWriteError` (a 401 or 403 on a write says "You don't have permission
-  to make this change."), `serverFieldErrors` reads a 400's `schemaValidationErrors`, and the owner
-  form shows each rejected field inline and in its summary ("Some fields were not accepted. Please
-  fix them below."), never a raw rule. Wired into Add owner, Edit owner and the Delete owner dialog.
-  134 UI tests (was 113), lint and build green. No backend or dependency change.
+  visit writes invalidate `['pet-types']`). H's backend half is PC014, below; its invalidation
+  lands with the pet and visit write screens. See `docs/ui/screen-inventory.md`.
+- **PC014, pet type usage counts (decision H, backend; branch `feature/PC014_pet_count_usage`,
+  uncommitted, awaiting review).** `GET /pettypes` and `GET /pettypes/{petTypeId}` return a new
+  `PetTypeWithCounts` schema (`petCount`, `visitCount`); `POST` and `PUT` keep `PetType`. One
+  grouped JPQL count query (`PetTypeRepository.findAllWithCounts` and `findWithCountsById`), a
+  `PetTypeWithCounts` record, service and mapper methods. Tests: 238 backend (was 232), 134 UI,
+  lint and build green; the real endpoint was also checked on a throwaway port (cat 4 pets and 4
+  visits, a new type 0 and 0, unknown id 404). `schema.d.ts` regenerated and `PetTypeWithCounts`
+  aliased in `types.ts`. No UI screen uses it yet (the Pet types screen is later), and the
+  `['pet-types']` invalidation lands with the pet and visit write screens.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -57,6 +59,9 @@ fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 Merged:
 
 - **PC008 (PR #19)** and **PC010 (PR #18):** described in the table above.
+- **PC011 to PC013 (PRs #20 to #22):** the screen analysis and decisions A to H, the `409` for
+  data-constraint failures, and the server `detail` and field messages in the owner form. Backend
+  232 tests and UI 134 tests, lint and build green at PC013.
 
 PC009 (PR #17, docs only) delivered:
 
@@ -86,9 +91,10 @@ In the order we agreed, one branch at a time, each merged and approved before th
 4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
    1. List the screens needed to cover the API use cases. Done 2026-10-13: see
       [ui/screen-inventory.md](ui/screen-inventory.md) (14 screens, build order and decisions A to H).
-   2. Build the screens one at a time, starting with write-error handling (decision F), then the
-      front desk screens (Add pet, Edit pet, Add and Edit visit, Delete pet and visit), then the
-      Vets list, the catalogs and vet admin.
+   2. Build the screens one at a time. Write-error handling (decision F) is done (PC012 backend,
+      PC013 UI) and the pet type counts (decision H) are in review as PC014. Next: the front desk
+      screens (Add pet and Edit pet on one shared form, Add and Edit visit, Delete pet and visit),
+      then the Vets list, the catalogs and vet admin.
    3. Connect the screens to the API.
    4. **Login page and its own ADR ([ADR-0009](adr/0009-login-and-authentication-mechanism.md),
       a placeholder listing the open questions)**, once the UI screens exist. This is the

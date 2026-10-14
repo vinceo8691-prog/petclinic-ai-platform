@@ -815,6 +815,26 @@ export interface components {
             id: number;
         };
         /**
+         * Pet type with counts
+         * @description A pet type with how many pets are of this type and how many visits those pets have had.
+         */
+        PetTypeWithCounts: components["schemas"]["PetType"] & {
+            /**
+             * Pet count
+             * Format: int32
+             * @description The number of pets of this type.
+             * @example 4
+             */
+            readonly petCount: number;
+            /**
+             * Visit count
+             * Format: int32
+             * @description The number of visits made by the pets of this type.
+             * @example 4
+             */
+            readonly visitCount: number;
+        };
+        /**
          * User
          * @description An user.
          */
@@ -1522,7 +1542,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PetType"][];
+                    "application/json": components["schemas"]["PetTypeWithCounts"][];
                 };
             };
             /** @description Not modified. */
@@ -1626,7 +1646,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PetType"];
+                    "application/json": components["schemas"]["PetTypeWithCounts"];
                 };
             };
             /** @description Not modified. */

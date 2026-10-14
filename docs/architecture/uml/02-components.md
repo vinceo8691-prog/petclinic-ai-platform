@@ -18,7 +18,7 @@ flowchart LR
         sec["Spring Security<br/>method security, role hierarchy"]
         services["Services<br/>Owner, Pet, Visit, Vet, PetType, Specialty, User"]
         repos["Spring Data JPA repositories"]
-        advice["ExceptionControllerAdvice<br/>ProblemDetail 400 / 403 / 404 / 500"]
+        advice["ExceptionControllerAdvice<br/>ProblemDetail 400 / 403 / 404 / 409 / 500"]
         issuer["Token issuer<br/>login, token exchange, delegated token"]
     end
 

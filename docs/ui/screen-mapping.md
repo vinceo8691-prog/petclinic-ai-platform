@@ -21,14 +21,14 @@ Security is off by default.
 | Add pet | `POST /owners/{ownerId}/pets` | `addPetToOwner` | Create the pet | OWNER_ADMIN | Not started |
 | Edit owner | `GET /owners/{ownerId}` | `getOwner` | Prefill the form | OWNER_ADMIN | Built |
 | Edit owner | `PUT /owners/{ownerId}` | `updateOwner` | Save changes | OWNER_ADMIN | Built |
-| Edit pet ⚠️ | `GET /owners/{ownerId}` | `getOwner` | Prefill the form from the cached owner (decision A); `GET /owners/{ownerId}/pets/{petId}` (`getOwnersPet`) is not used | OWNER_ADMIN | Not started |
-| Edit pet ⚠️ | `GET /pettypes` | `listPetTypes` | Populate the type select (counts ignored, as for Add pet) | OWNER_ADMIN or VET_ADMIN | Not started |
-| Edit pet ⚠️ | `PUT /owners/{ownerId}/pets/{petId}` | `updateOwnersPet` | Save changes | OWNER_ADMIN | Not started |
+| Edit pet | `GET /owners/{ownerId}` | `getOwner` | Prefill the form from the cached owner (decision A); `GET /owners/{ownerId}/pets/{petId}` (`getOwnersPet`) is not used | OWNER_ADMIN | Not started |
+| Edit pet | `GET /pettypes` | `listPetTypes` | Populate the type select (counts ignored, as for Add pet) | OWNER_ADMIN or VET_ADMIN | Not started |
+| Edit pet | `PUT /owners/{ownerId}/pets/{petId}` | `updateOwnersPet` | Save changes | OWNER_ADMIN | Not started |
 | Delete pet ⚠️ | `DELETE /pets/{petId}` | `deletePet` | Delete action (confirmation states the visit count) | OWNER_ADMIN | Not started |
-| Add visit ⚠️ | `GET /owners/{ownerId}` | `getOwner` | Find the pet being visited | OWNER_ADMIN | Not started |
-| Add visit ⚠️ | `POST /owners/{ownerId}/pets/{petId}/visits` | `addVisitToOwner` | Record the visit | OWNER_ADMIN | Not started |
-| Edit visit ⚠️ | `GET /owners/{ownerId}` | `getOwner` | Prefill the form from the cached owner | OWNER_ADMIN | Not started |
-| Edit visit ⚠️ | `PUT /visits/{visitId}` | `updateVisit` | Save changes | OWNER_ADMIN | Not started |
+| Add visit | `GET /owners/{ownerId}` | `getOwner` | Find the pet being visited | OWNER_ADMIN | Not started |
+| Add visit | `POST /owners/{ownerId}/pets/{petId}/visits` | `addVisitToOwner` | Record the visit | OWNER_ADMIN | Not started |
+| Edit visit | `GET /owners/{ownerId}` | `getOwner` | Prefill the form from the cached owner | OWNER_ADMIN | Not started |
+| Edit visit | `PUT /visits/{visitId}` | `updateVisit` | Save changes | OWNER_ADMIN | Not started |
 | Delete visit ⚠️ | `DELETE /visits/{visitId}` | `deleteVisit` | Delete action | OWNER_ADMIN | Not started |
 | Vets list ⚠️ | `GET /vets` | `listVets` | Vets and specialties | VET_ADMIN | Not started |
 | Add vet ⚠️ | `GET /specialties` | `listSpecialties` | Populate the specialties choice | VET_ADMIN | Not started |
@@ -37,7 +37,7 @@ Security is off by default.
 | Edit vet ⚠️ | `PUT /vets/{vetId}` | `updateVet` | Save changes | VET_ADMIN | Not started |
 | Delete vet ⚠️ | `DELETE /vets/{vetId}` | `deleteVet` | Delete action | VET_ADMIN | Not started |
 | Specialties | `GET`/`POST /specialties`, `PUT`/`DELETE /specialties/{id}` | `listSpecialties`, `addSpecialty`, `updateSpecialty`, `deleteSpecialty` | The whole catalog screen | VET_ADMIN | Not started |
-| Pet types | `GET`/`POST /pettypes`, `PUT`/`DELETE /pettypes/{id}` | `listPetTypes`, `addPetType`, `updatePetType`, `deletePetType` | The whole catalog screen (`GET` is also open to `OWNER_ADMIN`); `GET` will return `PetTypeWithCounts` for the delete confirmation (decision H, planned) | VET_ADMIN | Not started |
+| Pet types | `GET`/`POST /pettypes`, `PUT`/`DELETE /pettypes/{id}` | `listPetTypes`, `addPetType`, `updatePetType`, `deletePetType` | The whole catalog screen (`GET` is also open to `OWNER_ADMIN`); `GET` returns `PetTypeWithCounts` for the delete confirmation (decision H, built in PC014) | VET_ADMIN | Not started |
 | Add user | `POST /users` | `addUser` | Create an account (deferred, decision D) | ADMIN | Not started |
 | Assistant panel | `petclinic-ai-agent` (none yet) | — | TBD | TBD | Preview only |
 

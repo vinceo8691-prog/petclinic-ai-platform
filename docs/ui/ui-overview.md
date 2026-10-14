@@ -244,7 +244,7 @@ a screen.
    `PetTypeRepositoryImpl.delete` removes them with JPQL and has no guard. The planned guard (refuse
    with a 409 when pets use the type) is in [project-status.md](../project-status.md). Decision C
    ships Delete now with a count-based confirmation; the counts come from `PetTypeWithCounts` on
-   `GET /pettypes` (decision H, planned backend change; see screen-inventory.md).
+   `GET /pettypes` (decision H, built in PC014; see screen-inventory.md).
 2. **Deleting a specialty silently removes it from every vet that has it.** The confirmation says
    how many vets, which the UI can compute from the cached vets list.
 3. **`PUT /vets/{id}` matches specialties by name** and drops names it does not recognise, so the vet
