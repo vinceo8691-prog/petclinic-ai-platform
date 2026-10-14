@@ -397,8 +397,8 @@ class OwnerRestControllerV1Tests {
         this.mockMvc.perform(post("/api/owners/1/pets")
                 .content(newPetAsJSON).accept(MediaType.APPLICATION_JSON_VALUE).contentType(MediaType.APPLICATION_JSON_VALUE))
             .andDo(MockMvcResultHandlers.print())
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.detail").value("The requested resource could not be processed due to a data constraint violation"));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.detail").value("The change could not be saved because it conflicts with existing data"));
     }
 
     @Test

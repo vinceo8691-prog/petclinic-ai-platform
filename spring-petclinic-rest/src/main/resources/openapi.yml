@@ -89,6 +89,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -325,6 +331,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -366,6 +378,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Owner  not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -415,6 +433,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Pet or Owner not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -536,6 +560,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -590,6 +620,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Pet not found for this owner.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -662,6 +698,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Pet Type not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -771,6 +813,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -811,6 +859,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Pet type not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1009,6 +1063,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -1049,6 +1109,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Pet not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1121,6 +1187,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Visit not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1230,6 +1302,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -1270,6 +1348,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Visit not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1342,6 +1426,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Specialty not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1451,6 +1541,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -1491,6 +1587,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Specialty not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1564,6 +1666,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: Vet not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:
@@ -1673,6 +1781,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -1717,6 +1831,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         500:
           description: Server error.
           content:
@@ -1752,6 +1872,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         404:
           description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        409:
+          description: The change conflicts with existing data.
           content:
             application/json:
               schema:

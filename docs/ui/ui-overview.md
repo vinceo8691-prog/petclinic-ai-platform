@@ -193,10 +193,11 @@ a checklist to satisfy at the cost of simplicity.
    [screen-inventory.md](screen-inventory.md#delete-confirmations-state-what-else-goes-decided-2026-10-13).
 7. **Write errors show the server's reason.** `ApiError` already carries the server's `detail`, and
    the Delete owner dialog shows it. The rule for every new write screen: show that `detail`, and
-   never turn a write's `404` into "not found" (that wording is for reads of a missing record),
-   because the shared advice handler answers foreign-key failures with `404` (see below). Still to
-   do ahead of the next write screens (decision F): apply the rule in the shared error handling and
-   read the field messages in `schemaValidationErrors` (see Known gaps).
+   never turn a write's `404` into "not found" (that wording is for reads of a missing record).
+   Data-constraint failures answer `409` since PC012 (see below), but the rule stays: the server's
+   reason is what the user needs. Still to do ahead of the next write screens (decision F): apply
+   the rule in the shared error handling and read the field messages in `schemaValidationErrors`
+   (see Known gaps).
 8. **Catalog screens** (specialties, pet types) are one list page each with an inline add, edit and
    delete (decided, decision B). Worth extracting once the second use appears: a generic catalog
    page that takes the list, add, update and delete hooks; the `ConfirmDialog` wrapped as a
@@ -245,10 +246,13 @@ a screen.
    how many vets, which the UI can compute from the cached vets list.
 3. **`PUT /vets/{id}` matches specialties by name** and drops names it does not recognise, so the vet
    form sends specialties from the loaded catalog only.
-4. **Foreign-key failures answer `404`** ("data constraint violation") through the shared
-   `DataIntegrityViolationException` handler in `ExceptionControllerAdvice`. The UI must show the
-   server's `detail` for write errors, not "not found" (convention 7). **Fix now** (decided, decision
-   F). Whether the status should become 409 is an open backend question (already in the backlog).
+4. **Data-constraint failures answer `409` Conflict** (PC012; they answered `404` before) through
+   the shared `DataIntegrityViolationException` handler in `ExceptionControllerAdvice`, with the
+   generic detail "The change could not be saved because it conflicts with existing data" (the SQL
+   and constraint name are logged, never returned). `openapi.yml` documents the `409` on every
+   write operation (POST, PUT and DELETE), because the handler is global. The UI must show
+   the server's `detail` for write errors (convention 7); the handler does not tell a foreign-key
+   failure from a unique violation, by design.
 5. **Owner-scoped pet and visit writes do not verify ownership.** The UI always sends consistent
    ids; the check belongs on the backend backlog.
 6. **Deleting a pet deletes its visits** (`CascadeType.ALL`), so the dialog states the visit count.
