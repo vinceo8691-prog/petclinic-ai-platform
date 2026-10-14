@@ -1,7 +1,60 @@
 import { QueryClient } from '@tanstack/react-query'
-import { ApiError, shouldRetry } from './client'
+import { ApiError, describeWriteError, serverFieldErrors, shouldRetry } from './client'
 import { getOwner } from './owners'
 import { jsonResponse, makeOwner } from '../test/utils'
+
+describe('describeWriteError', () => {
+  it.each([401, 403])('says the user may not change data on a %i', (status) => {
+    expect(describeWriteError(new ApiError(status, 'Forbidden'))).toBe("You don't have permission to make this change.")
+  })
+
+  it('shows the server message for a conflict, so it is never reported as "not found"', () => {
+    const message = 'The requested resource could not be processed due to a data constraint violation'
+    expect(describeWriteError(new ApiError(409, message))).toBe(message)
+  })
+
+  it('keeps the network wording', () => {
+    expect(describeWriteError(new ApiError(0, 'Could not reach the server. Check your connection and try again.'))).toBe(
+      'Could not reach the server. Check your connection and try again.',
+    )
+  })
+})
+
+describe('serverFieldErrors', () => {
+  const problem = {
+    status: 400,
+    detail: 'The request contains invalid or missing parameters',
+    schemaValidationErrors: [
+      {
+        message: "Field 'telephone' must match \"^[0-9]{10}$\" (rejected value: 12345)",
+        field: 'telephone',
+        rejectedValue: '12345',
+        defaultMessage: 'must match "^[0-9]{10}$"',
+      },
+    ],
+  }
+
+  it('reads the field, the rejected value and the reason from a 400', () => {
+    expect(serverFieldErrors(new ApiError(400, problem.detail, problem))).toEqual([
+      { field: 'telephone', rejectedValue: '12345', message: 'must match "^[0-9]{10}$"' },
+    ])
+  })
+
+  it('returns nothing for other statuses, other errors or a body without field errors', () => {
+    expect(serverFieldErrors(new ApiError(409, 'Conflict', problem))).toEqual([])
+    expect(serverFieldErrors(new ApiError(400, 'Bad request'))).toEqual([])
+    expect(serverFieldErrors(new ApiError(400, 'Bad request', { schemaValidationErrors: [] }))).toEqual([])
+    expect(serverFieldErrors(new Error('boom'))).toEqual([])
+    expect(serverFieldErrors(undefined)).toEqual([])
+  })
+
+  it('skips entries that do not name a field, such as those the spec validator produces', () => {
+    const error = new ApiError(400, 'Bad request', {
+      schemaValidationErrors: [{ message: "[Path '/lastName'] Instance type (null) does not match" }, { message: 'x', field: '' }],
+    })
+    expect(serverFieldErrors(error)).toEqual([])
+  })
+})
 
 describe('shouldRetry', () => {
   it('retries network failures and server errors', () => {

@@ -190,6 +190,27 @@ describe('deleting an owner', () => {
     await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Delete' })).toBeEnabled())
   })
 
+  it('shows the server message, not "not found", when the delete conflicts with other data', async () => {
+    const message = 'The requested resource could not be processed due to a data constraint violation'
+    mockApi({ 'DELETE /petclinic/api/owners/1': () => jsonResponse({ detail: message }, 409) })
+    renderApp('/owners/1')
+    const dialog = await openDeleteDialog()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(message)
+  })
+
+  it('says the user may not make the change when the delete is refused with 403', async () => {
+    mockApi({ 'DELETE /petclinic/api/owners/1': () => jsonResponse({ detail: 'Access Denied' }, 403) })
+    renderApp('/owners/1')
+    const dialog = await openDeleteDialog()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent("You don't have permission to make this change.")
+  })
+
   it('does not mention pets for an owner without any', async () => {
     mockApi({ 'GET /petclinic/api/owners/1': () => jsonResponse(makeOwner(1, { pets: [] })) })
     renderApp('/owners/1')

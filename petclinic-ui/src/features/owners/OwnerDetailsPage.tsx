@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { describeError } from '../../api/client'
+import { describeWriteError } from '../../api/client'
 import type { Owner, Pet } from '../../api/types'
 import { BackLink } from '../../components/BackLink'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
@@ -109,7 +109,7 @@ function OwnerDetails({ owner }: { owner: Owner }) {
           confirmLabel="Delete"
           pendingLabel="Deleting…"
           isPending={deleteOwner.isPending}
-          errorMessage={deleteOwner.error ? describeError(deleteOwner.error) : undefined}
+          errorMessage={deleteOwner.error ? describeWriteError(deleteOwner.error) : undefined}
           onConfirm={confirmDelete}
           onCancel={() => setConfirmingDelete(false)}
         >

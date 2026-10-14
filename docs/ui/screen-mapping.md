@@ -76,7 +76,7 @@ Security is off by default.
 - **Owner details needs only one call**: `getOwner` returns the owner with `pets[]`, and
   each pet carries its visits, per the `Owner` schema.
 - **Errors** are `ProblemDetail` (`title`, `detail`, `status`): `400` is shown on the
-  form, `404` on a read as "not found", `401`/`403` as an access error, `5xx` and network failures as
+  form (each field in `schemaValidationErrors` under its input and in the summary, PC013), `404` on a read as "not found", `401`/`403` as an access error, `5xx` and network failures as
   a retryable error. A failed write always shows the server's `detail`. A data-constraint failure on a
   write (for example a pet whose type does not exist) answers `409` since PC012; before that it answered
   `404` (decision F, [ui-overview.md](ui-overview.md)).

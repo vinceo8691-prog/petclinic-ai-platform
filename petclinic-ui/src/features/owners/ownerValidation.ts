@@ -1,3 +1,4 @@
+import { serverFieldErrors, type ServerFieldError } from '../../api/client'
 import type { OwnerFields } from '../../api/types'
 
 // Mirrors the rules in spring-petclinic-rest openapi.yml (OwnerFields), including the telephone: exactly 10
@@ -67,3 +68,36 @@ export function trimOwner(values: OwnerFields): OwnerFields {
 }
 
 export const FIELD_LABELS = LABELS
+
+/** A server-rejected owner field: the wording to show, and the value that was rejected. */
+export interface RejectedOwnerField {
+  message: string
+  rejectedValue: string
+}
+
+export type ServerOwnerErrors = Partial<Record<OwnerField, RejectedOwnerField>>
+
+// Plain words and basic punctuation only, so a raw rule such as `must match "^[0-9]{10}$"` is never shown.
+const PLAIN_SERVER_MESSAGE = /^[A-Za-z0-9 ,.'-]+$/
+
+function wordServerError(field: OwnerField, serverError: ServerFieldError): string {
+  // The form's own rule says it best. It can only differ from the server's when the two have drifted apart.
+  const clientMessage = validateOwnerField(field, serverError.rejectedValue)
+  if (clientMessage) return clientMessage
+  if (PLAIN_SERVER_MESSAGE.test(serverError.message)) {
+    const sentence = `${LABELS[field]} ${serverError.message}`
+    return sentence.endsWith('.') ? sentence : `${sentence}.`
+  }
+  return `${LABELS[field]} is not valid.`
+}
+
+/** The owner fields the server rejected in a failed save, in friendly wording. Unknown fields are left out. */
+export function ownerErrorsFromServer(error: unknown): ServerOwnerErrors {
+  const errors: ServerOwnerErrors = {}
+  for (const serverError of serverFieldErrors(error)) {
+    const field = OWNER_FIELD_ORDER.find((candidate) => candidate === serverError.field)
+    if (!field || errors[field]) continue
+    errors[field] = { message: wordServerError(field, serverError), rejectedValue: serverError.rejectedValue }
+  }
+  return errors
+}
