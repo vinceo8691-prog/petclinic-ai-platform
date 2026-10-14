@@ -195,9 +195,12 @@ a checklist to satisfy at the cost of simplicity.
    the Delete owner dialog shows it. The rule for every new write screen: show that `detail`, and
    never turn a write's `404` into "not found" (that wording is for reads of a missing record).
    Data-constraint failures answer `409` since PC012 (see below), but the rule stays: the server's
-   reason is what the user needs. Still to do ahead of the next write screens (decision F): apply
-   the rule in the shared error handling and read the field messages in `schemaValidationErrors`
-   (see Known gaps).
+   reason is what the user needs. Built in PC013 (decision F): `describeWriteError` words a 401 or
+   403 on a write as "You don't have permission to make this change." and passes everything else
+   through, and a 400's `schemaValidationErrors` show under the field and in the form's summary
+   (`serverFieldErrors` in `api/client.ts`, `ownerErrorsFromServer` for the owner form). A server
+   message that is a raw rule, such as a regular expression, is never shown: the field reads
+   "<Label> is not valid." instead.
 8. **Catalog screens** (specialties, pet types) are one list page each with an inline add, edit and
    delete (decided, decision B). Worth extracting once the second use appears: a generic catalog
    page that takes the list, add, update and delete hooks; the `ConfirmDialog` wrapped as a
@@ -307,10 +310,12 @@ exists.
 
 ## Known gaps
 
-- **Server validation messages are generic.** A `400` from the API shows "The request contains
-  invalid or missing parameters" above the form, because the UI does not yet read the field-level
-  messages in `schemaValidationErrors` (part of decision F). The form rules mirror the API's (including the 10-digit
-  telephone), so this is rarely reached.
+- **Server field messages are mapped for the owner form only.** A `400` shows each rejected field
+  under its input and in the summary (PC013). Server wording is mapped per feature
+  (`ownerErrorsFromServer`), so each later form needs its own small mapping on top of the shared
+  `serverFieldErrors`. A rejected field the form does not have falls back to the server's general
+  message above the form. The form rules mirror the API's (including the 10-digit telephone), so a
+  server rejection is rarely reached.
 - **Add pet and Add visit** are not built yet, so Owner details shows pets and visits but
   cannot add them. Their placement is decision G, and the full list of remaining screens is in
   [screen-inventory.md](screen-inventory.md).

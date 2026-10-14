@@ -43,8 +43,13 @@ fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 - **PC012, foreign-key failures answer 409 instead of 404 (decision F, backend half).** The
   `DataIntegrityViolationException` handler answers `409` with a generic detail; `openapi.yml`
   documents it on all 21 write operations (POST, PUT, DELETE); `schema.d.ts` regenerated. Tests: 232
-  backend, 113 UI, lint and build green. The UI half of decision F (show `detail`, read
-  `schemaValidationErrors`) is the next branch.
+  backend, 113 UI, lint and build green. The UI half of decision F is PC013, below.
+- **PC013, UI half of decision F (branch `feature/PC013_detail_and_schema_fix`, uncommitted,
+  awaiting review).** `describeWriteError` (a 401 or 403 on a write says "You don't have permission
+  to make this change."), `serverFieldErrors` reads a 400's `schemaValidationErrors`, and the owner
+  form shows each rejected field inline and in its summary ("Some fields were not accepted. Please
+  fix them below."), never a raw rule. Wired into Add owner, Edit owner and the Delete owner dialog.
+  134 UI tests (was 113), lint and build green. No backend or dependency change.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -213,10 +218,9 @@ past about ten items, move it to GitHub Issues and link them here.
 - ✅ **POST specs for pet types, visits, specialties, vets and users said `200` but the
   controllers answer `201`** (found during PC010). Fixed in PC008 as a spec-only change: `201`,
   and the meaningless `ETag` and `304` blocks dropped from those creates.
-- **Show the server's field messages in the forms.** A 400 from the API shows only "The request
-  contains invalid or missing parameters" because the UI ignores `schemaValidationErrors`. Rarely
-  reached, since the form mirrors the API's rules. The raw messages (for example a regex) are not
-  user-friendly, so this needs wording work too.
+- ✅ **Show the server's field messages in the forms** (PC013, owner form). Each later form needs
+  its own small wording map on top of `serverFieldErrors`; raw rules (regular expressions) are
+  replaced by "<Label> is not valid."
 - **PostgreSQL and MySQL are not exercised by the tests.** The owner queries use portable JPQL, but
   only H2 and HSQLDB are verified. A Testcontainers-based test would close the gap. Also consider a
   functional index on `lower(last_name)` for PostgreSQL (`LOWER()` stops the plain index being used).
