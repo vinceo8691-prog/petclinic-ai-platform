@@ -74,6 +74,42 @@ export function isAccessError(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 401 || error.status === 403)
 }
 
+/**
+ * User-facing wording for a failed write (create, update, delete). A 401 or 403 there means the user may
+ * not change data, which is different from not being allowed to see it. Anything else, including the
+ * server's own `detail` for a 409 or a 400, is shown as the server wrote it.
+ */
+export function describeWriteError(error: unknown): string {
+  if (isAccessError(error)) return "You don't have permission to make this change."
+  return describeError(error)
+}
+
+/** A field the server rejected, read from the `schemaValidationErrors` of a 400. */
+export interface ServerFieldError {
+  field: string
+  /** The value the server saw, as text (the server sends "null" for a missing value). */
+  rejectedValue: string
+  /** The server's own reason for rejecting it. It can be a raw rule such as a regular expression. */
+  message: string
+}
+
+/** The per-field problems in a 400 response; empty for any other error or a body without them. */
+export function serverFieldErrors(error: unknown): ServerFieldError[] {
+  if (!(error instanceof ApiError) || error.status !== 400) return []
+  const entries = error.problem?.schemaValidationErrors
+  if (!Array.isArray(entries)) return []
+  return entries.flatMap((entry) => {
+    if (typeof entry.field !== 'string' || entry.field === '') return []
+    return [
+      {
+        field: entry.field,
+        rejectedValue: typeof entry.rejectedValue === 'string' ? entry.rejectedValue : '',
+        message: typeof entry.defaultMessage === 'string' ? entry.defaultMessage : '',
+      },
+    ]
+  })
+}
+
 const MAX_RETRIES = 3
 
 /**

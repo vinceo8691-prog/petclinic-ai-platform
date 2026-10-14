@@ -71,6 +71,43 @@ describe('EditOwnerPage', () => {
     expect(screen.getByLabelText('Last name')).toHaveValue('Franklin')
   })
 
+  it('shows the server\'s field message under the field and keeps the entered values', async () => {
+    mockApi({
+      'PUT /petclinic/api/owners/1': () =>
+        jsonResponse(
+          {
+            status: 400,
+            detail: 'The request contains invalid or missing parameters',
+            schemaValidationErrors: [
+              {
+                message: "Field 'address' must not be blank (rejected value: 110 W. Liberty St.)",
+                field: 'address',
+                rejectedValue: '110 W. Liberty St.',
+                defaultMessage: 'must not be blank',
+              },
+            ],
+          },
+          400,
+        ),
+    })
+    renderApp('/owners/1/edit')
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+
+    expect(await screen.findByText('Some fields were not accepted. Please fix them below.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Address')).toHaveAccessibleDescription('Address must not be blank.')
+    expect(screen.getByLabelText('Last name')).toHaveValue('Franklin')
+  })
+
+  it('says the user may not make the change when the server answers 403', async () => {
+    mockApi({ 'PUT /petclinic/api/owners/1': () => jsonResponse({ detail: 'Access Denied' }, 403) })
+    renderApp('/owners/1/edit')
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("You don't have permission to make this change.")
+  })
+
   it('cancels back to the owner details without saving', async () => {
     const fetchMock = mockApi()
     renderApp('/owners/1/edit')

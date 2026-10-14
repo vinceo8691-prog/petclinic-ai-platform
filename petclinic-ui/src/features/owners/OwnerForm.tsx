@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom'
 import type { OwnerFields } from '../../api/types'
 import { Button, buttonClassName } from '../../components/Button'
 import { TextField } from '../../components/TextField'
-import { FIELD_LABELS, OWNER_FIELD_ORDER, trimOwner, validateOwner, type OwnerField } from './ownerValidation'
+import {
+  FIELD_LABELS,
+  OWNER_FIELD_ORDER,
+  trimOwner,
+  validateOwner,
+  type OwnerField,
+  type ServerOwnerErrors,
+} from './ownerValidation'
 import styles from './OwnerForm.module.css'
 
 interface Props {
@@ -15,22 +22,47 @@ interface Props {
   cancelTo: string
   /** Called with trimmed values once they pass validation. */
   onSubmit: (fields: OwnerFields) => void
+  /**
+   * Fields the server rejected in the last save. Each shows under its field, and in the summary, only
+   * while the field still holds the value that was rejected.
+   */
+  serverErrors?: ServerOwnerErrors
 }
 
+const NO_SERVER_ERRORS: ServerOwnerErrors = {}
+
 /** The owner form shared by Add owner and Edit owner. The server stays authoritative on validation. */
-export function OwnerForm({ initialValues, submitLabel, pendingLabel, isPending, cancelTo, onSubmit }: Props) {
+export function OwnerForm({
+  initialValues,
+  submitLabel,
+  pendingLabel,
+  isPending,
+  cancelTo,
+  onSubmit,
+  serverErrors = NO_SERVER_ERRORS,
+}: Props) {
   const [values, setValues] = useState<OwnerFields>(initialValues)
   const [failedSubmits, setFailedSubmits] = useState(0)
   const summary = useRef<HTMLDivElement>(null)
 
   const allErrors = validateOwner(values)
+  // The server's complaint about a field goes away as soon as the user changes that field.
+  const serverMessage = (field: OwnerField) => {
+    const rejected = serverErrors[field]
+    return rejected && values[field].trim() === rejected.rejectedValue ? rejected.message : undefined
+  }
   // Errors appear after the first submit attempt, then update as the user fixes each field.
-  const visible = (field: OwnerField) => (failedSubmits > 0 ? allErrors[field] : undefined)
-  const summaryFields = OWNER_FIELD_ORDER.filter((field) => failedSubmits > 0 && allErrors[field])
+  const visible = (field: OwnerField) => (failedSubmits > 0 ? allErrors[field] : undefined) ?? serverMessage(field)
+  const summaryFields = OWNER_FIELD_ORDER.filter((field) => visible(field))
+  const hasServerMessages = summaryFields.some((field) => serverMessage(field))
 
   useEffect(() => {
     if (failedSubmits > 0) summary.current?.focus()
   }, [failedSubmits])
+
+  useEffect(() => {
+    if (Object.keys(serverErrors).length > 0) summary.current?.focus()
+  }, [serverErrors])
 
   function bind(field: OwnerField) {
     return {
@@ -60,7 +92,9 @@ export function OwnerForm({ initialValues, submitLabel, pendingLabel, isPending,
 
         {summaryFields.length > 0 && (
           <div ref={summary} tabIndex={-1} role="alert" className={styles.summary}>
-            <strong>Please fix the following:</strong>
+            <strong>
+              {hasServerMessages ? 'Some fields were not accepted. Please fix them below.' : 'Please fix the following:'}
+            </strong>
             <ul>
               {summaryFields.map((summaryField) => (
                 <li key={summaryField}>
@@ -73,7 +107,7 @@ export function OwnerForm({ initialValues, submitLabel, pendingLabel, isPending,
                   >
                     {FIELD_LABELS[summaryField]}
                   </a>
-                  : {allErrors[summaryField]}
+                  : {visible(summaryField)}
                 </li>
               ))}
             </ul>

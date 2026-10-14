@@ -1,4 +1,5 @@
-import { trimOwner, validateOwner, validateOwnerField } from './ownerValidation'
+import { ApiError } from '../../api/client'
+import { ownerErrorsFromServer, trimOwner, validateOwner, validateOwnerField } from './ownerValidation'
 
 const valid = { firstName: 'George', lastName: 'Franklin', address: '110 W. Liberty St.', city: 'Madison', telephone: '6085551023' }
 
@@ -62,6 +63,47 @@ describe('validateOwner', () => {
       expect(validateOwnerField('telephone', '')).toBe('Telephone is required.')
       expect(validateOwnerField('telephone', '   ')).toBe('Telephone is required.')
     })
+  })
+})
+
+describe('ownerErrorsFromServer', () => {
+  const badRequest = (...entries: Array<{ field: string; rejectedValue: string; defaultMessage: string }>) =>
+    new ApiError(400, 'The request contains invalid or missing parameters', {
+      schemaValidationErrors: entries.map((entry) => ({ message: `Field '${entry.field}' ${entry.defaultMessage}`, ...entry })),
+    })
+
+  it('words a raw rule as "<Label> is not valid." instead of showing the regular expression', () => {
+    const errors = ownerErrorsFromServer(
+      badRequest({ field: 'telephone', rejectedValue: '6085550000', defaultMessage: 'must match "^[0-9]{10}$"' }),
+    )
+    expect(errors).toEqual({ telephone: { message: 'Telephone is not valid.', rejectedValue: '6085550000' } })
+  })
+
+  it('keeps a plain-language server reason, with the field label in front', () => {
+    const errors = ownerErrorsFromServer(badRequest({ field: 'city', rejectedValue: 'Madison', defaultMessage: 'must not be blank' }))
+    expect(errors.city?.message).toBe('City must not be blank.')
+  })
+
+  it('prefers the form\'s own wording when its rule also rejects the value', () => {
+    const errors = ownerErrorsFromServer(badRequest({ field: 'telephone', rejectedValue: '12345', defaultMessage: 'must match "x"' }))
+    expect(errors.telephone?.message).toBe('Telephone must be exactly 10 digits, with no spaces or dashes.')
+  })
+
+  it('ignores fields the form does not have and keeps the first message for a field', () => {
+    const errors = ownerErrorsFromServer(
+      badRequest(
+        { field: 'id', rejectedValue: '3', defaultMessage: 'must be null' },
+        { field: 'city', rejectedValue: 'Madison', defaultMessage: 'must not be blank' },
+        { field: 'city', rejectedValue: 'Madison', defaultMessage: 'must not be empty' },
+      ),
+    )
+    expect(Object.keys(errors)).toEqual(['city'])
+    expect(errors.city?.message).toBe('City must not be blank.')
+  })
+
+  it('is empty for an error that is not a 400 with field messages', () => {
+    expect(ownerErrorsFromServer(new ApiError(409, 'Conflict'))).toEqual({})
+    expect(ownerErrorsFromServer(null)).toEqual({})
   })
 })
 
