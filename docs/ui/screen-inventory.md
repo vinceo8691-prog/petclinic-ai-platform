@@ -28,8 +28,8 @@ confirmation before it counts as decided; `Deferred` = known but intentionally n
 
 Delete pet, Delete visit and Delete vet are confirmation dialogs on screens 2 and 8, not routes
 (the same pattern as Delete owner). Specialties and Pet types do their deleting inside their own
-list pages. That makes ten routed screens still to build (3, 6 to 14; Add user is deferred) and three
-new dialogs.
+list pages. That makes nine routed screens still to build (3 and 6 to 13), plus Add user (14), which is
+deferred, and three new dialogs.
 
 ### Who does what
 
@@ -124,7 +124,7 @@ ships; the planned guard (refuse with a 409 when pets use the type, see
   through owner details.
 - *Login* — see the security note in [ui-overview.md](ui-overview.md).
 
-## Decisions from the full-workflow analysis (2026-10-13)
+## Decisions from the full-workflow analysis (2026-10-13 to 2026-10-14)
 
 | | Decision | Status |
 |---|---|---|
