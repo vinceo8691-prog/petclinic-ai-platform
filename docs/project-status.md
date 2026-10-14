@@ -1,6 +1,6 @@
 # Project Status
 
-**Week of 2026-10-12 to 2026-10-18**, updated 2026-10-12 (Monday). Update this file at the
+**Week of 2026-10-12 to 2026-10-18**, updated 2026-10-14 (Wednesday). Update this file at the
 start of each week and replace the sections below; older weeks stay in git history. The
 previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 
@@ -10,8 +10,8 @@ previous week (2026-10-05 to 2026-10-11) is summarised under "Where we are".
 
 ## Where we are
 
-`main` is at PR #18 and has everything below. PC009 and PC010 were merged this week; PC008
-is implemented and waiting for review.
+`main` is at PR #19 and has everything below. PC008, PC009 and PC010 were all merged on
+2026-10-12.
 
 | PR | Title prefix | What it delivered | Merged |
 |---|---|---|---|
@@ -24,24 +24,29 @@ is implemented and waiting for review.
 | #16 | PC005 | Owner delete fix: `Pet.type` no longer cascades; `PetTypeRepositoryImpl.delete` dropped a dead `em.remove` | 2026-10-11 |
 | #17 | PC009 | ADR-0007 amendments, ADR-0008 (Proposed), ADR-0009 (Placeholder), docs consistency pass | 2026-10-12 |
 | #18 | PC010 | `openapi.yml` says 204 No Content (no body) for the six `PUT` and six `DELETE` endpoints; controllers return `ResponseEntity<Void>` | 2026-10-12 |
+| #19 | PC008 | TypeScript API types generated from `openapi.yml` (`schema.d.ts`) with a CI freshness check; five `POST` specs corrected from `200` to `201` | 2026-10-12 |
 
 Also already on `main` before the PC numbering: the `ROLE_ADMIN` hierarchy (ADR-0006) and the
 fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
 
 **Open or planned work**
 
-- **PC008** (generate the TypeScript API types from `openapi.yml`, plus the five `POST` specs
-  corrected from `200` to `201`) is implemented on `feature/PC008_api-types-generation`,
-  uncommitted, awaiting review and a PR. Decisions taken: the generated file is
-  `petclinic-ui/src/api/schema.d.ts`, `readonly` is kept, and the freshness check is a step in
-  the existing UI CI job.
+- **Screens analysis merged into `docs/ui/` (2026-10-13, uncommitted until reviewed).** The full
+  workflow analysis, including the administration screens, is in the four UI docs. Decided:
+  A (Edit pet and Edit visit prefill from the cached owner), B (Specialties and Pet types are one
+  list page each with an inline form), C (Pet types include Delete now, with a count-based
+  confirmation), D (Add user waits for login), E (every delete dialog states what else goes), F (write errors show the server's `detail`),
+  G (pet and visit actions are icons on each pet card and buttons in the Pets heading row) and H
+  (pet type counts come from a separate `PetTypeWithCounts` schema on `GET /pettypes`, and pet and
+  visit writes invalidate `['pet-types']`). H needs its own backend branch (an `openapi.yml`
+  change), see `docs/ui/screen-inventory.md`.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
 
 Merged:
 
-- **PC010 (PR #18):** the spec fix described in the table above.
+- **PC008 (PR #19)** and **PC010 (PR #18):** described in the table above.
 
 PC009 (PR #17, docs only) delivered:
 
@@ -57,11 +62,7 @@ PC009 (PR #17, docs only) delivered:
   questions, so the login screen stays on the radar.
 - **A consistency pass over all docs**, including correcting ADR-0006's stale "not fixed" note.
 
-Implemented and waiting for review:
-
-- **PC008** (`feature/PC008_api-types-generation`): generated TypeScript API types with a CI
-  freshness check, and the five `POST` specs corrected from `200` to `201` (spec only, no
-  controller or test changes). Backend 231 tests, UI 113 tests, lint and build green.
+PC008 (PR #19) was checked at 231 backend tests and 113 UI tests, with lint and build green.
 
 ## Next tasks
 
@@ -71,11 +72,13 @@ In the order we agreed, one branch at a time, each merged and approved before th
 2. **PC010, body-on-204 `openapi.yml` fix** (PR #18): merged. The spec says 204 No Content for
    the six update and six delete endpoints, and the controllers no longer build a body.
 3. **PC008, generate the TypeScript API types** from `openapi.yml` and fix the five `POST`
-   specs to 201 (`feature/PC008_api-types-generation`, implemented, awaiting review). Runs
-   before Add pet.
+   specs to 201 (PR #19): merged.
 4. **Planned flow for the rest of the project ⚠️ (proposed 2026-10-11):**
-   1. List the screens needed to cover the API use cases.
-   2. Build the screens one at a time (Add pet, Edit pet, Add visit, Vets list, and so on).
+   1. List the screens needed to cover the API use cases. Done 2026-10-13: see
+      [ui/screen-inventory.md](ui/screen-inventory.md) (14 screens, build order and decisions A to H).
+   2. Build the screens one at a time, starting with write-error handling (decision F), then the
+      front desk screens (Add pet, Edit pet, Add and Edit visit, Delete pet and visit), then the
+      Vets list, the catalogs and vet admin.
    3. Connect the screens to the API.
    4. **Login page and its own ADR ([ADR-0009](adr/0009-login-and-authentication-mechanism.md),
       a placeholder listing the open questions)**, once the UI screens exist. This is the
@@ -140,7 +143,8 @@ In the order we agreed, one branch at a time, each merged and approved before th
 - The Assistant is a floating button at the bottom right that opens a docked right-hand panel;
   the button hides while it is open (the panel is a preview, not connected to the agent).
 - Owner delete lives only on the details page, behind a confirmation dialog, never in the list.
-  The button reads "Delete" and a successful delete returns to the list with a message.
+  It is a trash icon (red outline) in the page header, and a successful delete returns to the list
+  with a message.
 - Ten-digit phone numbers are shown as `(608) 555-1023`; other values are shown as stored.
 - Look and feel: teal palette, white card over decorative artwork, English text, art hidden on
   phones, one dog (the header mark, also the favicon).
@@ -219,8 +223,10 @@ past about ten items, move it to GitHub Issues and link them here.
   when it is picked up: the status is 409 Conflict with a `ProblemDetail` that says how many pets
   use it (this ties in with the open question of whether data-integrity errors should stay 404);
   `openapi.yml` gains a 409 response; `shouldDeletePetType` and `PetTypeRestControllerV1Tests`
-  change to the new rule; there is no way to force the delete (a pet type screen, if built, would
-  tell the user to move or remove the pets first). Do it after PC005, which removed the
+  change to the new rule; there is no way to force the delete (once the guard exists, the Pet types screen
+  tells the user to move or remove the pets first). **Interaction with UI decision C (2026-10-13):**
+  the Pet types screen ships Delete first, with a confirmation that states how many pets and visits
+  will go; the guard later replaces that confirmation with the refusal message. Do it after PC005, which removed the
   `Pet.type` cascade this behaviour sits next to and dropped the `em.remove` call in
   `PetTypeRepositoryImpl.delete`; the guard replaces that method's delete-everything logic.
 - ✅ **TypeScript API types are generated from `openapi.yml`** (PC008, ADR-0003). Dev

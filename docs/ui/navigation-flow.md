@@ -1,6 +1,6 @@
 # Navigation Flow
 
-Status as of 2026-10-07. How users move between the screens in
+Status as of 2026-10-14. How users move between the screens in
 [screen-inventory.md](screen-inventory.md). Screens marked ⚠️ are proposed, not decided.
 
 ## Primary flow (decided)
@@ -12,7 +12,7 @@ Owner search ──▶ Owner details ──▶ Add pet ──▶ Owner details
 
 1. The app opens at `/owners`; any unknown path redirects there.
 2. Selecting an owner (the name link, or anywhere on the row) opens **Owner details**.
-3. **Add pet** from Owner details opens the pet form.
+3. **Add pet** (the button in the Pets heading row) on Owner details opens the pet form.
 4. Saving returns to **Owner details** with the new pet listed. Cancel returns there too
    without saving.
 
@@ -36,6 +36,21 @@ Owner details ──[Edit owner]──▶ Edit owner ──(save / Cancel / back
 ```
 
 Edit owner prefills the Add owner form; saving returns to Owner details showing the new values.
+Edit pet works the same way with the Add pet form (planned).
+
+## Where the pet and visit actions sit (planned, decision G)
+
+```
+Owner details
+ ├─ Pets heading row ........ [Add pet]
+ └─ each pet card
+     ├─ top-right icons ..... [✎ Edit pet] [🗑 Delete pet]
+     └─ visits area ......... [Add visit]
+```
+
+Actions are buttons on the page, never a click-through on the card. Edit pet, Add pet and Add
+visit navigate to their forms; Delete pet opens the dialog, and Cancel returns focus to the trash
+icon that opened it.
 The deletion message comes from the navigation state, so it shows once and clears as soon as
 the user searches or pages.
 
@@ -51,14 +66,42 @@ the user searches or pages.
                                                      ├──▶ Add visit ⚠️ ─(save/cancel)────▶ Owner details
                                                      └──▶ Delete owner…  ──(confirm)──▶ Owner search
 
- Vets list ⚠️ (/vets) — reached from top navigation only; no outgoing links.
+ Edit visit, Delete pet and Delete visit are omitted here; see "Planned screens" below.
+ Vets list ⚠️ (/vets) — reached from top navigation; Add vet, Edit vet and Delete vet (see below).
 ```
+
+## Planned screens (from the 2026-10-13 analysis; decisions A–H)
+
+```
+Owner details ─┬──[Add pet]──▶ Add pet ──(save/cancel)──▶ Owner details
+               ├──[Edit pet]──▶ Edit pet ──(save/cancel)──▶ Owner details
+               ├──[Delete pet]──▶ dialog "…and N visits" ──(confirm)──▶ Owner details
+               ├──[Add visit]──▶ Add visit ──(save/cancel)──▶ Owner details
+               ├──[Edit visit]──▶ Edit visit ──(save/cancel)──▶ Owner details
+               └──[Delete visit]──▶ dialog ──(confirm)──▶ Owner details
+
+Vets list ─┬──[Add vet]──▶ Add vet ──(save/cancel)──▶ Vets list
+ /vets     ├──[Edit vet]──▶ Edit vet ──(save/cancel)──▶ Vets list
+           └──[Delete vet]──▶ dialog ──(confirm)──▶ Vets list
+
+Specialties (/specialties) and Pet types (/pet-types): one page each. Add, edit and delete all
+happen on the page (decision B); a delete dialog states what else goes. No outgoing links.
+
+Add user (/admin/users/new): deferred until login exists.
+```
+
+Edit pet and Edit visit find their record inside the owner already loaded (decision A), so a
+direct visit to their URL loads the owner first; an unknown pet or visit shows a "not found"
+message with a link back to the owner. Top navigation gains *Vets*, *Specialties* and *Pet types*
+as those screens are built. Until login exists they are all shown, and the API's `403` produces
+the existing "You don't have access" state.
 
 ## Rules
 
-- **Owner details is the hub.** Every create/edit screen returns to it on save or cancel,
-  so the user always lands where they can see the result. The exception is deleting an
-  owner, which returns to the Owner search with a confirmation message.
+- **Owner details is the hub.** Every owner, pet and visit create/edit screen returns to it on save
+  or cancel, so the user always lands where they can see the result. The exception is deleting an
+  owner, which returns to the Owner search with a confirmation message. Vet screens return to the
+  Vets list, and the catalog pages stay on their own page.
 - **Top navigation**: a link per built section (currently *Owners*), always visible, marked
   with `aria-current`. Child routes such as `/owners/new` keep their section marked.
   *Vets* is added when that screen exists.
@@ -68,8 +111,9 @@ the user searches or pages.
   search text, sort, page and page size. Typing updates the URL after a short pause and resets to
   page 1; search typing replaces the history entry rather than adding one, while paging and
   sorting add one (sorting also resets to page 1). Returning from Owner details with the back button restores the list as it was.
-- **Unknown owner/pet IDs** (API `404`) show an "Owner not found" message with a link back to the
-  owner search (built for owners; pets follow with their screens).
+- **Unknown owner/pet/visit IDs** (API `404`) show a "not found" message with a link back (built
+  for owners, to the owner search; pets and visits follow with their screens, linking back to the
+  owner).
 - **Unsaved changes**: leaving a form with edits shows no prompt in the first version. ⚠️
 - **Focus on navigation**: after moving to a new screen, focus moves to the main content and
   the document title updates, so keyboard and screen reader users start in the right place.
