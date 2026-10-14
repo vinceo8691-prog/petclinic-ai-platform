@@ -6,6 +6,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +82,21 @@ class ExceptionControllerAdviceTests {
             .containsEntry("field", "page")
             .containsEntry("rejectedValue", "abc")
             .containsEntry("defaultMessage", "must be a valid Integer");
+    }
+
+    @Test
+    void aDataIntegrityViolationIsAConflictThatDoesNotExposeTheSql() {
+        String technicalMessage = "could not execute statement; SQL [insert into pets ...]; constraint [fk_pet_type]";
+
+        ResponseEntity<ProblemDetail> response = advice.handleDataIntegrityViolationException(
+            new DataIntegrityViolationException(technicalMessage), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().getTitle()).isEqualTo("DataIntegrityViolationException");
+        assertThat(response.getBody().getDetail())
+            .isEqualTo("The change could not be saved because it conflicts with existing data")
+            .doesNotContain("SQL")
+            .doesNotContain("fk_pet_type");
     }
 
     @Test

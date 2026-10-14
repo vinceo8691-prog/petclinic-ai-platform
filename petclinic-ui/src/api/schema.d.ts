@@ -979,6 +979,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1153,6 +1162,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1210,6 +1228,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1258,6 +1285,15 @@ export interface operations {
             };
             /** @description Pet or Owner not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1383,6 +1419,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1433,6 +1478,15 @@ export interface operations {
             };
             /** @description Pet not found for this owner. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1525,6 +1579,15 @@ export interface operations {
             };
             /** @description Pet Type not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1655,6 +1718,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1705,6 +1777,15 @@ export interface operations {
             };
             /** @description Pet type not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1920,6 +2001,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -1970,6 +2060,15 @@ export interface operations {
             };
             /** @description Pet not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2062,6 +2161,15 @@ export interface operations {
             };
             /** @description Visit not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2192,6 +2300,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -2242,6 +2359,15 @@ export interface operations {
             };
             /** @description Visit not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2334,6 +2460,15 @@ export interface operations {
             };
             /** @description Specialty not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2464,6 +2599,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -2514,6 +2658,15 @@ export interface operations {
             };
             /** @description Specialty not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2606,6 +2759,15 @@ export interface operations {
             };
             /** @description Vet not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2736,6 +2898,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -2793,6 +2964,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description The change conflicts with existing data. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
             /** @description Server error. */
             500: {
                 headers: {
@@ -2838,6 +3018,15 @@ export interface operations {
             };
             /** @description User not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The change conflicts with existing data. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

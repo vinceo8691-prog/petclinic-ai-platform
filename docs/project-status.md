@@ -40,6 +40,11 @@ fix that makes a denied `@PreAuthorize` answer 403 instead of 500 (2026-10-05).
   (pet type counts come from a separate `PetTypeWithCounts` schema on `GET /pettypes`, and pet and
   visit writes invalidate `['pet-types']`). H needs its own backend branch (an `openapi.yml`
   change), see `docs/ui/screen-inventory.md`.
+- **PC012, foreign-key failures answer 409 instead of 404 (decision F, backend half).** The
+  `DataIntegrityViolationException` handler answers `409` with a generic detail; `openapi.yml`
+  documents it on all 21 write operations (POST, PUT, DELETE); `schema.d.ts` regenerated. Tests: 232
+  backend, 113 UI, lint and build green. The UI half of decision F (show `detail`, read
+  `schemaValidationErrors`) is the next branch.
 - `petclinic-ai-agent` is still scaffolding only; the assistant in the UI is a stub panel.
 
 ## Completed this week
@@ -221,7 +226,7 @@ past about ten items, move it to GitHub Issues and link them here.
   by deleting type 1 (cat), which four seed pets use. Wanted: if any pet references the type,
   answer an error and delete nothing; an unused type still deletes. ⚠️ Assumptions to confirm
   when it is picked up: the status is 409 Conflict with a `ProblemDetail` that says how many pets
-  use it (this ties in with the open question of whether data-integrity errors should stay 404);
+  use it (data-integrity errors answer 409 since PC012, so the status is consistent);
   `openapi.yml` gains a 409 response; `shouldDeletePetType` and `PetTypeRestControllerV1Tests`
   change to the new rule; there is no way to force the delete (once the guard exists, the Pet types screen
   tells the user to move or remove the pets first). **Interaction with UI decision C (2026-10-13):**

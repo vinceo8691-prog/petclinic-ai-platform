@@ -77,8 +77,9 @@ Security is off by default.
   each pet carries its visits, per the `Owner` schema.
 - **Errors** are `ProblemDetail` (`title`, `detail`, `status`): `400` is shown on the
   form, `404` on a read as "not found", `401`/`403` as an access error, `5xx` and network failures as
-  a retryable error. A failed write always shows the server's `detail`, even for `404`, because
-  foreign-key failures answer `404` (decision F, [ui-overview.md](ui-overview.md)).
+  a retryable error. A failed write always shows the server's `detail`. A data-constraint failure on a
+  write (for example a pet whose type does not exist) answers `409` since PC012; before that it answered
+  `404` (decision F, [ui-overview.md](ui-overview.md)).
 - **Not used by any planned screen:** `GET /pets`, `GET /pets/{id}`, `GET /visits`,
   `GET /visits/{id}` and the unpaginated `GET /owners`. The owner flow already reaches that data,
   so a standalone list would only duplicate it. (The write endpoints are used by the planned

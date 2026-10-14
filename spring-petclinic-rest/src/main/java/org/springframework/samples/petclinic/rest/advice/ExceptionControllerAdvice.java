@@ -55,7 +55,7 @@ public class ExceptionControllerAdvice {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
     private static final String ERROR_UNEXPECTED = "An unexpected error occurred while processing your request";
-    private static final String ERROR_DATA_INTEGRITY = "The requested resource could not be processed due to a data constraint violation";
+    private static final String ERROR_DATA_INTEGRITY = "The change could not be saved because it conflicts with existing data";
     private static final String ERROR_INVALID_REQUEST = "The request contains invalid or missing parameters";
     private static final String ERROR_ACCESS_DENIED = "You do not have permission to access this resource";
 
@@ -94,12 +94,14 @@ public class ExceptionControllerAdvice {
     }
 
     /**
-     * Handles {@link DataIntegrityViolationException} which typically indicates database constraint violations. This
-     * method returns a 404 Not Found status if an entity does not exist.
+     * Handles {@link DataIntegrityViolationException}, a database constraint violation such as a foreign key that
+     * points at a record that does not exist, or a value that must be unique. The request was well formed but
+     * conflicts with the stored data, so the answer is 409, not 404. The detail is deliberately generic: the
+     * constraint and SQL details are logged, never returned.
      *
      * @param e The {@link DataIntegrityViolationException} to be handled
      * @param request {@link HttpServletRequest} object referring to the current request.
-     * @return A {@link ResponseEntity} containing the error information and a 404 Not Found status
+     * @return A {@link ResponseEntity} containing the error information and a 409 Conflict status
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseBody
@@ -109,7 +111,7 @@ public class ExceptionControllerAdvice {
             request.getRequestURI(),
             e.getMessage());
         logger.debug("Data integrity violation stacktrace", e);
-        HttpStatus status = HttpStatus.NOT_FOUND;
+        HttpStatus status = HttpStatus.CONFLICT;
         ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), ERROR_DATA_INTEGRITY);
         return ResponseEntity.status(status).body(detail);
     }
