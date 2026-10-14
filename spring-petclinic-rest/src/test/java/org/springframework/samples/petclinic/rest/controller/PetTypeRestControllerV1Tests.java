@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.mapper.PetTypeMapper;
 import org.springframework.samples.petclinic.model.PetType;
+import org.springframework.samples.petclinic.model.PetTypeWithCounts;
 import org.springframework.samples.petclinic.rest.advice.ExceptionControllerAdvice;
 import org.springframework.samples.petclinic.service.PetTypeService;
 import org.springframework.samples.petclinic.service.clinicService.ApplicationTestConfig;
@@ -97,31 +98,35 @@ class PetTypeRestControllerV1Tests {
     @Test
     @WithMockUser(roles="OWNER_ADMIN")
     void testGetPetTypeSuccessAsOwnerAdmin() throws Exception {
-    	given(this.petTypeService.findPetTypeById(1)).willReturn(petTypes.get(0));
+    	given(this.petTypeService.findPetTypeWithCountsById(1)).willReturn(new PetTypeWithCounts(1, "cat", 4, 4));
         this.mockMvc.perform(get("/api/pettypes/1")
         	.accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.name").value("cat"));
+            .andExpect(jsonPath("$.name").value("cat"))
+            .andExpect(jsonPath("$.petCount").value(4))
+            .andExpect(jsonPath("$.visitCount").value(4));
     }
 
     @Test
     @WithMockUser(roles="VET_ADMIN")
     void testGetPetTypeSuccessAsVetAdmin() throws Exception {
-        given(this.petTypeService.findPetTypeById(1)).willReturn(petTypes.get(0));
+        given(this.petTypeService.findPetTypeWithCountsById(1)).willReturn(new PetTypeWithCounts(1, "cat", 4, 4));
         this.mockMvc.perform(get("/api/pettypes/1")
             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.name").value("cat"));
+            .andExpect(jsonPath("$.name").value("cat"))
+            .andExpect(jsonPath("$.petCount").value(4))
+            .andExpect(jsonPath("$.visitCount").value(4));
     }
 
     @Test
     @WithMockUser(roles="OWNER_ADMIN")
     void testGetPetTypeNotFound() throws Exception {
-    	given(this.petTypeService.findPetTypeById(999)).willReturn(null);
+    	given(this.petTypeService.findPetTypeWithCountsById(999)).willReturn(null);
         this.mockMvc.perform(get("/api/pettypes/999")
         	.accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
@@ -130,40 +135,43 @@ class PetTypeRestControllerV1Tests {
     @Test
     @WithMockUser(roles="OWNER_ADMIN")
     void testGetAllPetTypesSuccessAsOwnerAdmin() throws Exception {
-    	petTypes.remove(0);
-    	petTypes.remove(1);
-    	given(this.petTypeService.findAllPetTypes()).willReturn(petTypes);
+    	given(this.petTypeService.findAllPetTypesWithCounts()).willReturn(List.of(
+            new PetTypeWithCounts(2, "dog", 4, 0), new PetTypeWithCounts(4, "snake", 1, 0)));
         this.mockMvc.perform(get("/api/pettypes")
         	.accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
         	.andExpect(jsonPath("$.[0].id").value(2))
         	.andExpect(jsonPath("$.[0].name").value("dog"))
+            .andExpect(jsonPath("$.[0].petCount").value(4))
+            .andExpect(jsonPath("$.[0].visitCount").value(0))
         	.andExpect(jsonPath("$.[1].id").value(4))
-        	.andExpect(jsonPath("$.[1].name").value("snake"));
+        	.andExpect(jsonPath("$.[1].name").value("snake"))
+            .andExpect(jsonPath("$.[1].petCount").value(1));
     }
 
     @Test
     @WithMockUser(roles="VET_ADMIN")
     void testGetAllPetTypesSuccessAsVetAdmin() throws Exception {
-        petTypes.remove(0);
-        petTypes.remove(1);
-        given(this.petTypeService.findAllPetTypes()).willReturn(petTypes);
+        given(this.petTypeService.findAllPetTypesWithCounts()).willReturn(List.of(
+            new PetTypeWithCounts(2, "dog", 4, 0), new PetTypeWithCounts(4, "snake", 1, 0)));
         this.mockMvc.perform(get("/api/pettypes")
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.[0].id").value(2))
             .andExpect(jsonPath("$.[0].name").value("dog"))
+            .andExpect(jsonPath("$.[0].petCount").value(4))
+            .andExpect(jsonPath("$.[0].visitCount").value(0))
             .andExpect(jsonPath("$.[1].id").value(4))
-            .andExpect(jsonPath("$.[1].name").value("snake"));
+            .andExpect(jsonPath("$.[1].name").value("snake"))
+            .andExpect(jsonPath("$.[1].petCount").value(1));
     }
 
     @Test
     @WithMockUser(roles="VET_ADMIN")
     void testGetAllPetTypesNotFound() throws Exception {
-    	petTypes.clear();
-    	given(this.petTypeService.findAllPetTypes()).willReturn(petTypes);
+    	given(this.petTypeService.findAllPetTypesWithCounts()).willReturn(List.of());
         this.mockMvc.perform(get("/api/pettypes")
         	.accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
@@ -198,6 +206,7 @@ class PetTypeRestControllerV1Tests {
     @WithMockUser(roles="VET_ADMIN")
     void testUpdatePetTypeSuccess() throws Exception {
     	given(this.petTypeService.findPetTypeById(2)).willReturn(petTypes.get(1));
+    	given(this.petTypeService.findPetTypeWithCountsById(2)).willReturn(new PetTypeWithCounts(2, "dog I", 4, 0));
     	PetType newPetType = petTypes.get(1);
     	newPetType.setName("dog I");
     	ObjectMapper mapper = new ObjectMapper();

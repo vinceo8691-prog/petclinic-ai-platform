@@ -62,8 +62,8 @@ the user searches or pages.
  Owner search ─────────┤
    /owners             └──(select)──▶ Owner details ─┬──▶ Edit owner ──(save/cancel)──▶ Owner details
                                        /owners/:id   ├──▶ Add pet ──────(save/cancel)────▶ Owner details
-                                                     ├──▶ Edit pet ⚠️ ──(save/cancel)────▶ Owner details
-                                                     ├──▶ Add visit ⚠️ ─(save/cancel)────▶ Owner details
+                                                     ├──▶ Edit pet ──────(save/cancel)────▶ Owner details
+                                                     ├──▶ Add visit ─────(save/cancel)────▶ Owner details
                                                      └──▶ Delete owner…  ──(confirm)──▶ Owner search
 
  Edit visit, Delete pet and Delete visit are omitted here; see "Planned screens" below.
