@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: identity-spike
+
+# Security is ON by default. A deployed profile ("deployed") refuses to start without full settings.
+# For the live check, pass:
+#   --spike.auth.issuer-uri=https://cognito-idp.us-east-1.amazonaws.com/<pool id>
+#   --spike.auth.spa-client-id=<app client id>
+spike:
+  auth:
+    enabled: true

@@ -1,0 +1,18 @@
+{
+  "UserPoolId": "<spike-user-pool-id>",
+  "ClientName": "petclinic-spa",
+  "GenerateSecret": false,
+  "AccessTokenValidity": 5,
+  "IdTokenValidity": 5,
+  "RefreshTokenValidity": 8,
+  "TokenValidityUnits": { "AccessToken": "minutes", "IdToken": "minutes", "RefreshToken": "hours" },
+  "ExplicitAuthFlows": [ "ALLOW_REFRESH_TOKEN_AUTH" ],
+  "SupportedIdentityProviders": [ "COGNITO" ],
+  "CallbackURLs": [ "http://localhost:5199/callback" ],
+  "LogoutURLs": [ "http://localhost:5199/" ],
+  "AllowedOAuthFlows": [ "code" ],
+  "AllowedOAuthScopes": [ "openid", "profile" ],
+  "AllowedOAuthFlowsUserPoolClient": true,
+  "PreventUserExistenceErrors": "ENABLED",
+  "EnableTokenRevocation": true
+}

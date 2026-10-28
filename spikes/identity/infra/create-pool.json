@@ -1,0 +1,19 @@
+{
+  "PoolName": "petclinic-identity-spike",
+  "Policies": {
+    "PasswordPolicy": {
+      "MinimumLength": 12,
+      "RequireUppercase": true,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": true,
+      "TemporaryPasswordValidityDays": 1
+    }
+  },
+  "DeletionProtection": "INACTIVE",
+  "MfaConfiguration": "OFF",
+  "AdminCreateUserConfig": { "AllowAdminCreateUserOnly": true },
+  "AccountRecoverySetting": { "RecoveryMechanisms": [ { "Priority": 1, "Name": "admin_only" } ] },
+  "UserPoolTier": "ESSENTIALS",
+  "UserPoolTags": { "purpose": "identity-spike", "disposable": "true", "project": "petclinic" }
+}
