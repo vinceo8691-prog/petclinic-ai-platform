@@ -1,7 +1,9 @@
 # Identity spike: Cognito employee authentication and the delegation grant
 
-Tracking document for the limited identity spike approved on 2026-10-26. It is updated at the end of each session;
-I stop after each session so you can read it. **Nothing here is production code.** (When this document was written no ADR
+Tracking document for the limited identity spike approved on 2026-10-26. It was written by Claude Code for the project owner
+("you" is the owner; "I" is Claude) and updated at the end of each session; Claude stopped after each session so the owner could
+read it. It is kept as the log of the spike's evidence and reasoning. Sections marked **historical** record advice that was
+later overtaken by decisions; the current decisions are in the ADRs and the roadmap. **Nothing here is production code.** (When this document was written no ADR
 had been amended. Outcome, 2026-10-26: the owner chose Option 1b; the resulting decisions are drafted in ADR-0007
 amendment 9, ADR-0008, ADR-0009, ADR-0010 and ADR-0013 and are pending the owner's acceptance. The estimate in this
 document was superseded by a revised, itemized one: about 15.5 to 20.5 focused days of essential identity work.)
@@ -330,7 +332,12 @@ Every row is a test that passes; "over HTTP" means it is also checked against a 
 **Conclusion: Option 1b is feasible and met every security requirement. It was not too complex: the security-critical core
 is about 200 lines. Option 2a is not needed.**
 
-## Estimated production implementation effort
+## Estimated production implementation effort (historical)
+
+> **Superseded (2026-10-26).** The owner rejected the 29 to 42 day figure below, which applied a flat 3 to 5 times multiplier to
+> the spike's effort. A revised, itemized estimate replaced it: about 15.5 to 20.5 focused days of essential identity work
+> (Release 1 about 9.5 to 13.5, Release 2 about 6 to 7), with about 5 to 8 days of optional hardening deferred. The current plan
+> is in the roadmap (Release 1 is 7 weeks; the whole plan is 19 weeks). The table is kept as the original estimate.
 
 Basis: the spike took about 9 to 11 focused hours for a prototype of about 910 main lines and 1,480 test lines. Production adds
 integration with the real code, a database, the UI, infrastructure and operations, which in my experience multiplies the spike
@@ -361,7 +368,12 @@ identity alone is about 3.5 to 5 weeks of focused work. Release 2 also holds the
 confirmation screen in 3 weeks; delegation alone is about 2.5 to 3.5 weeks. The weeks are targets, so I recommend moving them
 (below) rather than cutting the security work.
 
-## Recommended ADR amendments (nothing has been changed)
+## Recommended ADR amendments (historical; these were drafted afterwards)
+
+> **Superseded (2026-10-26).** These recommendations were turned into drafts: ADR-0007 amendment 9, ADR-0008, ADR-0009,
+> ADR-0010 and ADR-0013 (all pending the owner's acceptance). Where they differ, the ADRs win. Notably the employee access token
+> is proposed as **15 minutes with no refresh token**, not the 5-minute minimum recommended below (5 minutes remains right for the
+> agent's machine client).
 
 **ADR-0007**
 - Decision 1, "Required mechanism" and amendment 8: replace the token exchange and the `act` JWT with a **delegation grant**:
@@ -397,7 +409,11 @@ the "not permitted via the assistant" code, 429 for the cap, 503 with `Retry-Aft
 **ADR-0010**: add the Cognito resources, the grant table (a Flyway migration), the agent client secret in Secrets Manager, no KMS,
 and the logging rule (no debug logging of `org.springframework.web` in deployed profiles).
 
-## Recommended backlog and roadmap changes
+## Recommended backlog and roadmap changes (historical)
+
+> **Superseded (2026-10-26).** The backlog and roadmap were updated by the owner's decisions, and the item numbers below no
+> longer match: **B-087** is now the API custom domain and **B-088** is revoking grants on logout and role change. Release 1 is
+> 7 weeks and the plan is 19 weeks, not the roughly 21 weeks suggested below. Use the backlog and roadmap, not this section.
 
 **Backlog (by id)**
 
@@ -422,7 +438,11 @@ and the logging rule (no debug logging of `org.springframework.web` in deployed 
   now about grants, not an exchange. The Release 2 owner lookup criterion 10 is already satisfied in design by this prototype.
 - Remove the Cognito versus self-run comparison from Release 1's open decisions once you approve.
 
-## Decisions for you
+## Decisions for you (historical; all answered)
+
+> **Answered (2026-10-26 to 2026-10-28):** 1. Option 1b approved. 2. Release 1 extended to 7 weeks (plan: 19 weeks). 3. The spike
+> AWS resources are kept for now; teardown has not been run. 4. The spike was committed and pushed (sanitized) as branch
+> `feature/PC016_identity_spike`, tag `spike/identity-v1`.
 
 1. **Do you approve Option 1b as the final architecture?** If yes, I would then draft the ADR amendments and the backlog and
    roadmap changes for review (this document only recommends them).
