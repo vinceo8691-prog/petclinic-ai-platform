@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/> <!-- lookup parent from Maven repository -->
     </parent>
 
@@ -25,19 +25,19 @@
 
         <!-- Third-party libraries -->
         <spring-data-jdbc.version>1.2.1.RELEASE</spring-data-jdbc.version>
-        <springdoc-openapi-ui.version>3.1.0</springdoc-openapi-ui.version>
-        <jackson-databind-nullable.version>0.2.11</jackson-databind-nullable.version>
+        <springdoc-openapi-ui.version>3.2.0</springdoc-openapi-ui.version>
+        <jackson-databind-nullable.version>0.2.13</jackson-databind-nullable.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
 
         <!-- Maven plugins and supporting properties -->
-        <maven.jacoco-plugin.version>0.8.15</maven.jacoco-plugin.version>
+        <maven.jacoco-plugin.version>0.8.16</maven.jacoco-plugin.version>
         <maven.jxr-plugin.version>3.6.0</maven.jxr-plugin.version>
         <maven.license-plugin.version>2.7.1</maven.license-plugin.version>
-        <maven.openapi-generator-plugin.version>7.25.0</maven.openapi-generator-plugin.version>
+        <maven.openapi-generator-plugin.version>7.26.0</maven.openapi-generator-plugin.version>
         <maven.project-info-reports-plugin.version>3.9.0</maven.project-info-reports-plugin.version>
         <maven.rat-plugin.version>0.18</maven.rat-plugin.version>
-        <maven.refactor-first-plugin.version>0.9.0</maven.refactor-first-plugin.version>
+        <maven.refactor-first-plugin.version>0.10.0</maven.refactor-first-plugin.version>
         <maven.site-plugin.version>3.22.0</maven.site-plugin.version>
         <maven.version>3.9.9</maven.version>
 
